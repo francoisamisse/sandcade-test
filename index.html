@@ -42,7 +42,22 @@
     font-size:calc(var(--c) * .42); color:#1d1230; transition: transform .12s; }
   .case.g { border:1px solid #0003; }
   .case.flash { transform:scale(1.22); box-shadow:0 0 0 3px #fff, 0 0 16px 6px #fffb; z-index:2; position:relative; }
-  .rail { width:var(--r); height:var(--r); }
+  .rail { width:var(--r); height:var(--r); display:flex; align-items:center; justify-content:center; }
+  .entree span { width:calc(var(--r) * .9); height:calc(var(--r) * .9); border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font:calc(var(--r) * .44) "Titan One"; color:#1d1230; cursor:pointer; animation: appel 1.2s ease-in-out infinite; }
+  .entree.plein span { border:2px solid #1d1230; box-shadow:0 0 0 2px #fff; }
+  .entree.garage span { background:#fff !important; border:2px dashed #1d1230; }
+  .entree.perd span { background:#c0143c !important; color:#fff; border:2px solid #7a0b26; }
+  .case.vise { outline:3px solid #1d1230; outline-offset:-3px; animation: vise .6s ease-in-out infinite alternate; position:relative; z-index:1; }
+  @keyframes vise { to { transform:scale(.8); } }
+  .plateau.apercu .case.g:not(.vise) { opacity:.35; }
+  .legende { display:inline-flex; gap:4px; align-items:center; margin:0 4px; }
+  .legende i { display:inline-flex; width:20px; height:20px; border-radius:50%; align-items:center; justify-content:center; font:11px "Titan One"; font-style:normal; }
+  .variantes { display:flex; gap:8px; margin:8px 0 4px; }
+  .variantes button { flex:1; padding:10px 6px; border-radius:14px; border:2px solid var(--violet); background:#fff; color:var(--violet); font:17px "Titan One"; }
+  .variantes button.choisi { background:var(--violet); color:#fff; }
+  .desc { text-align:center; color:#5c4d73; font-size:14px; margin:6px 0 12px; min-height:40px; }
+  .lancer { font:16px "Titan One"; color:#fff; background:var(--violet); border:0; border-radius:12px; padding:6px 18px; margin-left:6px; box-shadow:0 3px 0 #1d0840; }
   .robot { position:absolute; width:calc(var(--r) * 1.05); height:calc(var(--r) * 1.05); border-radius:50% 50% 42% 42%; border:2px solid #1d1230;
     display:none; align-items:center; justify-content:center; font:calc(var(--c) * .3) "Titan One"; z-index:3;
     transition:left .08s linear, top .08s linear; }
@@ -56,10 +71,13 @@
   .bot.petit { width:38px; height:38px; font-size:13px; opacity:.55; } .bot.petit b { margin-top:10px; }
   .bot.petit::before { top:22%; }
   .bot.jouable { box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--violet); animation: appel 1.4s ease-in-out infinite; }
+  .bot.choisi { box-shadow:0 0 0 3px #fff, 0 0 0 7px #FFC21F, 0 0 14px 6px #FFC21F; transform:scale(1.12); animation:none; }
   @keyframes appel { 50% { transform: translateY(-3px); } }
   .places { display:flex; gap:8px; }
   .place { width:62px; height:62px; border:2px dashed var(--violet); border-radius:14px; display:flex; align-items:center; justify-content:center; }
-  .aide { text-align:center; color:#5c4d73; font-size:14px; min-height:20px; }
+  .place.garable { border-style:solid; background:#efe7fb; color:var(--violet); font:12px/1.1 "Titan One"; text-align:center; cursor:pointer;
+    animation: appel 1.2s ease-in-out infinite; }
+  .aide { text-align:center; color:#5c4d73; font-size:14px; min-height:40px; }
   .voile { position:fixed; inset:0; background:#230b54cc; display:none; align-items:center; justify-content:center; padding:20px; z-index:10; }
   .voile.vu { display:flex; }
   .voile .carte { max-width:420px; width:100%; text-align:center; }
@@ -79,20 +97,36 @@
   <h1>Sandcade</h1>
   <p class="sous">Le test, seul · 3 niveaux · 15 minutes environ</p>
   <div class="carte">
+    <div style="text-align:center;font-weight:600">La variante</div>
+    <div class="variantes" id="choixVariante"></div>
+    <div class="desc" id="descVariante"></div>
+  </div>
+  <div class="carte">
     <div style="text-align:center;font-weight:600">Testeur n°</div>
     <div class="testeurs" id="choixTesteur"></div>
     <input id="prenom" placeholder="Prénom (facultatif)" autocomplete="off">
   </div>
   <button class="gros-bouton" id="commencer">Commencer</button>
-  <div style="text-align:center"><button class="lien" id="voirBilan">Le bilan des 5 testeurs (pour François)</button></div>
+  <div style="text-align:center"><button class="lien" id="voirBilan">Le bilan des testeurs (pour François)</button></div>
 </section>
 
 <section class="ecran" id="regle">
   <h1 style="font-size:30px">La règle</h1>
   <div class="grains" id="grainsRegle"></div>
-  <div class="carte"><ol class="regle">
+  <div class="carte" id="regleA"><ol class="regle">
     <li>Une image en sable de couleur. <b>Le but : la vider.</b></li>
-    <li>Touche <b>un robot</b> pour le lancer : celui en tête d'une file, ou un robot du garage.</li>
+    <li>Touche <b>un robot</b> : celui en tête d'une file, ou un robot du garage. Autour de l'image, <b>les endroits où il peut aspirer s'allument</b>, avec le nombre de grains qu'il prendra.</li>
+    <li>Touche un endroit allumé : il <b>aspire d'un coup les grains de sa couleur qui se suivent</b> depuis là, jusqu'à ce que son réservoir (le chiffre) soit plein.</li>
+    <li>Quand des grains sont aspirés, <b>tout ce qui est au-dessus tombe</b>.</li>
+    <li>Un robot pas rempli va <b>au garage</b> ; tu peux aussi y garer une tête de file. Garage plein : <b>perdu</b>.</li>
+  </ol>
+  <p style="margin:4px 0 0;font-size:14px;color:#5c4d73">Les endroits allumés :
+    <span class="legende"><i style="background:var(--J);border:2px solid #1d1230">3</i> il se remplit</span>
+    <span class="legende"><i style="background:#fff;border:2px dashed #1d1230">2</i> il ira au garage</span>
+    <span class="legende"><i style="background:#c0143c;color:#fff">✗</i> perdu</span></p></div>
+  <div class="carte" id="regleB"><ol class="regle">
+    <li>Une image en sable de couleur. <b>Le but : la vider.</b></li>
+    <li>Touche <b>un robot</b> (celui en tête d'une file, ou un robot du garage) : <b>tu vois les grains qu'il va aspirer</b>. Touche-le encore pour le lancer.</li>
     <li>Il fait le tour de l'image et <b>aspire les grains de sa couleur qu'il voit</b>, jusqu'à ce que son réservoir (le chiffre) soit plein.</li>
     <li>Quand un grain est aspiré, <b>tout ce qui est au-dessus tombe</b>.</li>
     <li>Un robot pas rempli va <b>au garage</b>. Garage plein : <b>perdu</b>.</li>
@@ -124,8 +158,12 @@
 
 <section class="ecran" id="bilan">
   <h1 style="font-size:30px">Le bilan</h1>
-  <div class="verdict" id="verdict"></div>
-  <div class="carte" style="overflow-x:auto"><table id="tableBilan"></table></div>
+  <div class="titre" style="font-size:20px;margin-top:10px">A · Viser</div>
+  <div class="verdict" id="verdictA"></div>
+  <div class="carte" style="overflow-x:auto"><table id="tableBilanA"></table></div>
+  <div class="titre" style="font-size:20px;margin-top:14px">B · Aperçu</div>
+  <div class="verdict" id="verdictB"></div>
+  <div class="carte" style="overflow-x:auto"><table id="tableBilanB"></table></div>
   <button class="gros-bouton" id="copier">Copier le bilan</button>
   <button class="gros-bouton clair" id="retourAccueil">Revenir</button>
   <div style="text-align:center"><button class="lien" id="effacer">Effacer tous les résultats</button></div>
@@ -230,14 +268,105 @@ const Moteur = (() => {
   return { depart, arrets, unTour, coups, robotDuCoup, jouer, gagne, bloque };
 })();
 
-if (typeof module !== "undefined") module.exports = Moteur;
+
+// La variante « Viser » (Q-010), la même règle que scripts/papier/regles_viser.py : le joueur choisit le robot ET l'entrée ;
+// le robot aspire d'un coup la suite de grains de sa couleur qui part de cette entrée. Un coup :
+// { origine: "file" | "garage", n, entree: { cote, k } } ou { origine: "file", n, entree: "garer" } (une tête de file au garage).
+const MoteurViser = (() => {
+  // Les entrées du rail, dans l'ordre du tour : bas des colonnes, droite des rangées, haut, gauche (rangée 0 = en bas).
+  function entrees(L, H) {
+    const a = [];
+    for (let c = 0; c < L; c++) a.push({ cote: "bas", k: c });
+    for (let k = 0; k < H; k++) a.push({ cote: "droite", k });
+    for (let c = L - 1; c >= 0; c--) a.push({ cote: "haut", k: c });
+    for (let k = H - 1; k >= 0; k--) a.push({ cote: "gauche", k });
+    return a;
+  }
+
+  // Les grains [colonne, hauteur] qu'aspirerait le robot depuis cette entrée, dans l'ordre ; vide si le premier n'est pas
+  // de sa couleur.
+  function suiteDeGrains(cols, cote, k, couleur, place) {
+    const pris = [];
+    if (cote === "bas" || cote === "haut") {
+      const col = cols[k];
+      for (let j = 0; j < col.length; j++) {
+        const i = cote === "bas" ? j : col.length - 1 - j;
+        if (col[i] !== couleur || pris.length === place) break;
+        pris.push([k, i]);
+      }
+      return pris;
+    }
+    const ordre = cote === "droite" ? [...cols.keys()].reverse() : [...cols.keys()];
+    const debut = ordre.findIndex(c => cols[c].length > k);
+    if (debut < 0) return pris;
+    for (const c of ordre.slice(debut)) {
+      if (cols[c].length <= k || cols[c][k] !== couleur || pris.length === place) break;
+      pris.push([c, k]);
+    }
+    return pris;
+  }
+
+  // Retire les grains ; la gravité fait le reste.
+  function aspirer(cols, pris) {
+    const r = cols.map(c => c.slice());
+    for (const [c, i] of pris.slice().sort((a, b) => b[1] - a[1])) r[c].splice(i, 1);
+    return r;
+  }
+
+  const robotDuCoup = (etat, coup, niveau) => coup.origine === "file" ? niveau.files[coup.n][etat.tetes[coup.n]] : etat.garage[coup.n];
+
+  function coups(etat, niveau, L, H, garageMax) {
+    const robots = [];
+    niveau.files.forEach((f, n) => { if (etat.tetes[n] < f.length) robots.push({ origine: "file", n }); });
+    etat.garage.forEach((_, n) => robots.push({ origine: "garage", n }));
+    const r = [];
+    for (const rb of robots) {
+      const [couleur, place] = robotDuCoup(etat, rb, niveau);
+      for (const e of entrees(L, H)) if (suiteDeGrains(etat.cols, e.cote, e.k, couleur, place).length) r.push({ ...rb, entree: e });
+      if (rb.origine === "file" && etat.garage.length < garageMax) r.push({ ...rb, entree: "garer" });
+    }
+    return r;
+  }
+
+  // Joue un coup. Rend { etat (null si perdu), robot, pris, reste }.
+  function jouer(etat, coup, niveau, garageMax) {
+    const [couleur, place] = robotDuCoup(etat, coup, niveau);
+    const tetes = etat.tetes.slice();
+    let garage = etat.garage.slice();
+    if (coup.origine === "file") tetes[coup.n]++;
+    else garage.splice(coup.n, 1);
+    const pris = coup.entree === "garer" ? [] : suiteDeGrains(etat.cols, coup.entree.cote, coup.entree.k, couleur, place);
+    const cols = aspirer(etat.cols, pris);
+    const reste = place - pris.length;
+    if (reste > 0) {
+      if (garage.length >= garageMax) return { etat: null, robot: [couleur, place], pris, reste };
+      garage = garage.concat([[couleur, reste]]).sort((a, b) => (a[0] + a[1]).localeCompare(b[0] + b[1]));
+    }
+    return { etat: { cols, tetes, garage }, robot: [couleur, place], pris, reste };
+  }
+
+  const gagne = etat => etat.cols.every(c => c.length === 0);
+  const bloque = (etat, niveau, L, H, garageMax) => coups(etat, niveau, L, H, garageMax).length === 0;
+
+  return { entrees, suiteDeGrains, aspirer, robotDuCoup, coups, jouer, gagne, bloque };
+})();
+
+if (typeof module !== "undefined") { module.exports = Moteur; module.exports.Viser = MoteurViser; }
 </script>
 <script>
-const NIVEAUX = [{"nom": "Le coucher de soleil", "image": ["VJJV", "JJJJ", "RRRR", "OOOO"], "files": [[["R", 4], ["J", 3], ["V", 2]], [["O", 4], ["J", 3]]], "garage": 3}, {"nom": "La fleur", "image": ["VVRVV", "VRJRV", "RJVJR", "VRJRV", "OOOOO"], "files": [[["J", 2], ["J", 2], ["R", 3], ["V", 6]], [["V", 3], ["O", 5], ["R", 4]]], "garage": 2}, {"nom": "La mer", "image": ["VVJVV", "VJJJV", "RVJVR", "ORRRO", "OROJO", "JOOOO"], "files": [[["R", 4], ["J", 3], ["J", 2], ["V", 3], ["O", 4]], [["R", 2], ["J", 2], ["V", 5], ["O", 3], ["O", 2]]], "garage": 2}], L = 5, H = 6;
+// Deux variantes du même jeu, à comparer (Q-010) :
+//   A « Viser »  : on choisit le robot ET l'endroit ; il aspire d'un coup la suite de grains de sa couleur (MoteurViser).
+//   B « Aperçu » : la règle du tour (Moteur), mais on voit d'avance les grains que le robot prendra, et le tour est rapide.
+const NIVEAUX = { A: [{"nom": "Le coucher de soleil", "image": ["VJJV", "JJJJ", "RRRR", "OOOO"], "files": [[["V", 2], ["O", 4], ["J", 4]], [["R", 4], ["J", 2]]], "garage": 3}, {"nom": "La fleur", "image": ["VVRVV", "VRJRV", "RJVJR", "VRJRV", "OOOOO"], "files": [[["V", 5], ["V", 2], ["R", 4], ["O", 5]], [["V", 2], ["R", 3], ["J", 4]]], "garage": 3}, {"nom": "La mer", "image": ["VVJVV", "VJJJV", "RVJVR", "ORRRO", "OROJO", "JOOOO"], "files": [[["R", 3], ["V", 3], ["J", 5], ["V", 5], ["O", 4]], [["O", 3], ["R", 3], ["J", 2], ["O", 2]]], "garage": 3}], B: [{"nom": "Le coucher de soleil", "image": ["VJJV", "JJJJ", "RRRR", "OOOO"], "files": [[["R", 4], ["J", 3], ["V", 2]], [["O", 4], ["J", 3]]], "garage": 3}, {"nom": "La fleur", "image": ["VVRVV", "VRJRV", "RJVJR", "VRJRV", "OOOOO"], "files": [[["J", 2], ["J", 2], ["R", 3], ["V", 6]], [["V", 3], ["O", 5], ["R", 4]]], "garage": 2}, {"nom": "La mer", "image": ["VVJVV", "VJJJV", "RVJVR", "ORRRO", "OROJO", "JOOOO"], "files": [[["R", 4], ["J", 3], ["J", 2], ["V", 3], ["O", 4]], [["R", 2], ["J", 2], ["V", 5], ["O", 3], ["O", 2]]], "garage": 2}] }, L = 5, H = 6;
+const VARIANTES = {
+  A: { nom: "Viser", desc: "Tu choisis le robot <b>et l'endroit</b> où il aspire." },
+  B: { nom: "Aperçu", desc: "Tu choisis le robot ; <b>tu vois d'avance</b> les grains qu'il prendra pendant son tour." },
+};
 const COUL = { J:["var(--J)","●"], O:["var(--O)","▲"], R:["var(--R)","■"], V:["var(--V)","★"] };
-const CLE = "sandcade-test-solo";
+const CLE = "sandcade-test-deux-variantes";
 const $ = id => document.getElementById(id);
 const attendre = ms => new Promise(r => setTimeout(r, ms));
+const grains = n => `${n} grain${n > 1 ? "s" : ""}`;
 // Les résultats restent sur l'appareil (localStorage) ; si le navigateur le refuse, ils vivent le temps de la page.
 let memoire = "{}";
 const stock = (() => { try { localStorage.setItem(CLE + "-essai", "1"); localStorage.removeItem(CLE + "-essai"); return localStorage; }
@@ -245,7 +374,11 @@ const stock = (() => { try { localStorage.setItem(CLE + "-essai", "1"); localSto
 const lire = () => JSON.parse(stock.getItem(CLE) || "{}");
 const ecrireStock = d => stock.setItem(CLE, JSON.stringify(d));
 
-let testeur = 1, session = null, niv = 0, etat = null, occupe = false, debutEssai = 0, coupsEssai = 0, momentPerte = 0;
+let variante = "A", testeur = 1, session = null, niv = 0, etat = null, occupe = false, choix = null;
+let debutEssai = 0, coupsEssai = 0, momentPerte = 0;
+const cle = () => variante + testeur;            // un résultat par variante et par testeur : « A1 », « B3 »…
+const niveau = () => NIVEAUX[variante][niv];
+function garderSession() { const d = lire(); d[cle()] = session; ecrireStock(d); }
 
 function montrer(id) { document.querySelectorAll(".ecran").forEach(e => e.classList.toggle("vu", e.id === id)); window.scrollTo(0, 0); }
 function voile(html) { $("voileCarte").innerHTML = html; $("voile").classList.toggle("vu", !!html); }
@@ -255,15 +388,20 @@ function botHTML(c, p, cls = "", attrs = "") { return `<div class="bot yeux ${cl
 // ——— l'accueil ———
 function accueil() {
   const d = lire();
-  $("choixTesteur").innerHTML = [1,2,3,4,5].map(n => `<button data-t="${n}" class="${n === testeur ? "choisi" : ""} ${d[n] && d[n].fini ? "fait" : ""}">${n}</button>`).join("");
-  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { testeur = +b.dataset.t; $("prenom").value = (lire()[testeur] || {}).prenom || ""; accueil(); });
+  $("choixVariante").innerHTML = ["A", "B"].map(v => `<button data-v="${v}" class="${v === variante ? "choisi" : ""}">${v} · ${VARIANTES[v].nom}</button>`).join("");
+  $("descVariante").innerHTML = VARIANTES[variante].desc;
+  document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { variante = b.dataset.v; accueil(); });
+  $("choixTesteur").innerHTML = [1,2,3,4,5].map(n => `<button data-t="${n}" class="${n === testeur ? "choisi" : ""} ${d[variante + n] && d[variante + n].fini ? "fait" : ""}">${n}</button>`).join("");
+  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { testeur = +b.dataset.t; $("prenom").value = (lire()[cle()] || {}).prenom || ""; accueil(); });
   montrer("accueil");
 }
 $("commencer").onclick = () => {
-  session = { prenom: $("prenom").value.trim(), debut: Date.now(), niveaux: NIVEAUX.map(() => ({ essais: [] })), offre: null,
-              redemande: null, notes: "", rejoue: false, fini: false };
-  const d = lire(); d[testeur] = session; ecrireStock(d);
+  session = { variante, prenom: $("prenom").value.trim(), debut: Date.now(), niveaux: NIVEAUX[variante].map(() => ({ essais: [] })),
+              offre: null, redemande: null, notes: "", rejoue: false, fini: false };
+  garderSession();
   $("grainsRegle").innerHTML = "JORV".split("").map(c => grainHTML(c)).join("");
+  $("regleA").style.display = variante === "A" ? "" : "none";
+  $("regleB").style.display = variante === "B" ? "" : "none";
   montrer("regle");
 };
 $("jouer").onclick = () => { niv = 0; commencerNiveau(); };
@@ -271,45 +409,106 @@ $("voirBilan").onclick = bilan;
 $("retourAccueil").onclick = accueil;
 
 // ——— le jeu ———
+const AIDE_DEPART = { A: "Touche un robot qui brille, puis un endroit allumé autour de l'image.",
+                      B: "Touche un robot qui brille : tu verras les grains qu'il va prendre." };
 function commencerNiveau() {
-  etat = Moteur.depart(NIVEAUX[niv], L); debutEssai = Date.now(); coupsEssai = 0;
-  $("titreNiveau").textContent = `Niveau ${niv + 1} — ${NIVEAUX[niv].nom}`;
-  $("essaiNiveau").textContent = `essai ${session.niveaux[niv].essais.length + 1}`;
+  etat = Moteur.depart(niveau(), L); debutEssai = Date.now(); coupsEssai = 0; choix = null; occupe = false;
+  $("titreNiveau").textContent = `Niveau ${niv + 1} — ${niveau().nom}`;
+  $("essaiNiveau").textContent = `${variante} · essai ${session.niveaux[niv].essais.length + 1}`;
   $("plateau").style.gridTemplateColumns = `var(--r) repeat(${L}, var(--c)) var(--r)`;
-  $("aide").textContent = "Touche un robot qui brille pour le lancer.";
+  $("aide").textContent = AIDE_DEPART[variante];
   voile(""); montrer("jeu"); dessiner();
 }
 
-function dessiner(flash) {
+// Où se trouve une entrée du rail dans la grille (colonne, rangée), le rail compris.
+function posEntree({ cote, k }) {
+  if (cote === "bas") return [k + 1, H + 1];
+  if (cote === "haut") return [k + 1, 0];
+  if (cote === "droite") return [L + 1, H - k];
+  return [0, H - k];
+}
+
+// A : les entrées où le robot choisi peut aspirer, avec ce qui arrivera (plein, garage, perdu).
+function entreesPossibles() {
+  const m = new Map(), nv = niveau();
+  if (!choix) return m;
+  const [couleur, place] = MoteurViser.robotDuCoup(etat, choix, nv);
+  for (const e of MoteurViser.entrees(L, H)) {
+    const pris = MoteurViser.suiteDeGrains(etat.cols, e.cote, e.k, couleur, place);
+    if (!pris.length) continue;
+    const r = MoteurViser.jouer(etat, { ...choix, entree: e }, nv, nv.garage);
+    m.set(posEntree(e).join(","), { entree: e, n: pris.length, couleur, look: !r.etat ? "perd" : r.reste === 0 ? "plein" : "garage" });
+  }
+  return m;
+}
+
+// B : les grains que le robot choisi va prendre pendant son tour, repérés là où ils sont maintenant.
+function apercu() {
+  const nv = niveau(), res = Moteur.jouer(etat, choix, nv, L, H, nv.garage);
+  const ids = etat.cols.map((col, c) => col.map((_, i) => c + "," + i)), vises = new Set();
+  for (const ev of res.evenements) if (ev.col !== null) { vises.add(ids[ev.col][ev.i]); ids[ev.col].splice(ev.i, 1); }
+  return { vises, res };
+}
+
+function dessiner(flash = []) {
+  const nv = niveau(), eclair = new Set(flash.map(([c, i]) => c + "," + i));
+  const ents = variante === "A" && !occupe ? entreesPossibles() : new Map();
+  const vises = variante === "B" && choix && !occupe ? apercu().vises : new Set();
   let h = "";
   for (let r = 0; r < H + 2; r++) for (let c = 0; c < L + 2; c++) {
     const bord = r === 0 || r === H + 1 || c === 0 || c === L + 1;
-    if (bord) { h += `<div class="rail" style="${r > 0 && r <= H ? "height:var(--c)" : ""};${c > 0 && c <= L ? "width:var(--c)" : ""}"></div>`; continue; }
-    const g = etat.cols[c - 1][H - r];
-    const f = flash && flash[0] === c - 1 && flash[1] === H - r ? " flash" : "";
-    h += g ? grainHTML(g, f) : `<div class="case"></div>`;
+    if (bord) {
+      const taille = `${r > 0 && r <= H ? "height:var(--c)" : ""};${c > 0 && c <= L ? "width:var(--c)" : ""}`, e = ents.get(c + "," + r);
+      h += e ? `<div class="rail entree ${e.look}" style="${taille}" data-ent="${c},${r}"><span style="background:${COUL[e.couleur][0]}">${e.look === "perd" ? "✗" : e.n}</span></div>`
+             : `<div class="rail" style="${taille}"></div>`;
+      continue;
+    }
+    const k = (c - 1) + "," + (H - r), g = etat.cols[c - 1][H - r];
+    h += g ? grainHTML(g, (eclair.has(k) ? " flash" : "") + (vises.has(k) ? " vise" : "")) : `<div class="case"></div>`;
   }
   $("plateau").innerHTML = h + `<div class="robot yeux" id="robot"><b></b></div>`;
-  const nv = NIVEAUX[niv];
+  $("plateau").classList.toggle("apercu", vises.size > 0);
+  const estChoisi = (o, n) => choix && choix.origine === o && choix.n === n;
   ["fileA", "fileB"].forEach((id, n) => {
     const f = nv.files[n] || [], t = etat.tetes[n] ?? 0;
-    $(id).innerHTML = f.slice(t).map(([c, p], k) => k === 0 ? botHTML(c, p, occupe ? "" : "jouable", `data-file="${n}"`) : botHTML(c, p, "petit")).join("")
+    $(id).innerHTML = f.slice(t).map(([c, p], k) => k === 0
+      ? botHTML(c, p, occupe ? "" : estChoisi("file", n) ? "choisi" : "jouable", `data-file="${n}"`) : botHTML(c, p, "petit")).join("")
       || `<span style="color:#9a8db0;font-size:14px">vide</span>`;
   });
+  const garable = variante === "A" && !occupe && choix && choix.origine === "file" && etat.garage.length < nv.garage;
   $("garage").innerHTML = [...Array(nv.garage)].map((_, i) => etat.garage[i]
-    ? `<div class="place">${botHTML(etat.garage[i][0], etat.garage[i][1], occupe ? "" : "jouable", `data-garage="${i}"`)}</div>` : `<div class="place"></div>`).join("");
-  document.querySelectorAll("[data-file]").forEach(b => b.onclick = () => lancer({ origine: "file", n: +b.dataset.file }));
-  document.querySelectorAll("[data-garage]").forEach(b => b.onclick = () => lancer({ origine: "garage", n: +b.dataset.garage }));
+    ? `<div class="place">${botHTML(etat.garage[i][0], etat.garage[i][1], occupe ? "" : estChoisi("garage", i) ? "choisi" : "jouable", `data-garage="${i}"`)}</div>`
+    : garable && i === etat.garage.length ? `<div class="place garable" data-garer="1">garer<br>ici</div>` : `<div class="place"></div>`).join("");
+  document.querySelectorAll("[data-file]").forEach(b => b.onclick = () => toucherRobot({ origine: "file", n: +b.dataset.file }));
+  document.querySelectorAll("[data-garage]").forEach(b => b.onclick = () => toucherRobot({ origine: "garage", n: +b.dataset.garage }));
+  document.querySelectorAll("[data-ent]").forEach(b => b.onclick = () => jouerViser({ ...choix, entree: ents.get(b.dataset.ent).entree }));
+  document.querySelectorAll("[data-garer]").forEach(b => b.onclick = () => jouerViser({ ...choix, entree: "garer" }));
 }
 
-function posArret(n) {   // (colonne, rangée) de la grille, le rail compris
-  if (n <= L) return [n, H + 1];
-  if (n <= L + H) return [L + 1, H - (n - L - 1)];
-  if (n <= 2 * L + H) return [L - (n - L - H - 1), 0];
-  return [0, H - (2 * L + 2 * H - n)];
+function toucherRobot(rb) {
+  if (occupe) return;
+  const memeRobot = choix && choix.origine === rb.origine && choix.n === rb.n;
+  if (memeRobot && variante === "B") return lancerApercu(rb);
+  choix = memeRobot ? null : rb;
+  dessiner();
+  if (!choix) { $("aide").textContent = AIDE_DEPART[variante]; return; }
+  if (variante === "A") {
+    const n = entreesPossibles().size, garable = choix.origine === "file" && etat.garage.length < niveau().garage;
+    $("aide").innerHTML = n
+      ? `Touche un endroit allumé${garable ? " (ou « garer ici »)" : ""}. <span class="legende"><i style="background:#fff;border:2px dashed #1d1230">2</i> garage</span><span class="legende"><i style="background:#c0143c;color:#fff">✗</i> perdu</span>`
+      : `Ce robot ne peut rien aspirer pour l'instant.${garable ? " Tu peux le garer." : ""} Touche-le encore pour le reposer.`;
+  } else {
+    const { res } = apercu();
+    const suite = !res.etat ? `il en manquera ${res.reste} et le garage est plein : <b>perdu</b> !`
+      : res.reste === 0 ? "réservoir plein, il s'en ira." : `il en manquera ${res.reste} : il ira au garage.`;
+    $("aide").innerHTML = (res.aspires ? `Il prendra ${grains(res.aspires)} ; ` : "Il ne prendra rien ; ") + suite
+      + `<button class="lancer" id="boutonLancer">Lancer</button>`;
+    $("boutonLancer").onclick = () => lancerApercu(choix);
+  }
 }
-function placerRobot(n, c, p) {
-  const r = $("robot"), [x, y] = posArret(n), cs = getComputedStyle(document.documentElement);
+
+function placerRobotXY(x, y, c, p) {
+  const r = $("robot");
   const cel = $("plateau").children[0].getBoundingClientRect().width;            // la largeur du rail
   const caseL = $("plateau").children[1].getBoundingClientRect().width;          // la largeur d'une case
   const px = x === 0 ? 0 : x === L + 1 ? cel + L * caseL : cel + (x - 1) * caseL + (caseL - cel) / 2;
@@ -317,107 +516,140 @@ function placerRobot(n, c, p) {
   r.style.display = "flex"; r.style.background = COUL[c][0]; r.style.left = (4 + px - cel * .025) + "px"; r.style.top = (4 + py - cel * .025) + "px";
   r.querySelector("b").textContent = p;
 }
+function posArret(n) {   // (colonne, rangée) de la grille pour l'arrêt n du tour
+  if (n <= L) return [n, H + 1];
+  if (n <= L + H) return [L + 1, H - (n - L - 1)];
+  if (n <= 2 * L + H) return [L - (n - L - H - 1), 0];
+  return [0, H - (2 * L + 2 * H - n)];
+}
 
-async function lancer(coup) {
+function finDuCoup(res, texte) {
+  occupe = false;
+  const nv = niveau(), M = variante === "A" ? MoteurViser : Moteur;
+  if (!res.etat) return perdu("Garage plein !", "Le robot n'était pas plein et il n'y avait plus de place au garage.");
+  etat = res.etat; dessiner();
+  $("aide").textContent = texte;
+  if (M.gagne(etat)) return gagne();
+  if (M.bloque(etat, nv, L, H, nv.garage)) return perdu("Bloqué !", "Plus aucun robot ne peut rien aspirer.");
+}
+
+// A : le robot va à l'entrée choisie, les grains s'allument un à un, puis disparaissent ; ce qui est au-dessus tombe.
+async function jouerViser(coup) {
   if (occupe) return;
-  occupe = true; coupsEssai++;
-  const nv = NIVEAUX[niv];
-  const res = Moteur.jouer(etat, coup, nv, L, H, nv.garage);
+  occupe = true; coupsEssai++; choix = null;
+  const nv = niveau(), res = MoteurViser.jouer(etat, coup, nv, nv.garage);
+  const [c, cap] = res.robot;
+  if (coup.origine === "file") etat.tetes[coup.n]++; else etat.garage.splice(coup.n, 1);
+  dessiner(); $("aide").textContent = "";
+  if (coup.entree !== "garer") {
+    const [x, y] = posEntree(coup.entree);
+    placerRobotXY(x, y, c, cap); await attendre(140);
+    for (let j = 1; j <= res.pris.length; j++) { dessiner(res.pris.slice(0, j)); placerRobotXY(x, y, c, cap - j); await attendre(90); }
+    await attendre(120);
+    etat.cols = MoteurViser.aspirer(etat.cols, res.pris); dessiner(); placerRobotXY(x, y, c, res.reste); await attendre(220);
+  }
+  finDuCoup(res, coup.entree === "garer" ? "Garé." : res.reste === 0 ? "Réservoir plein : il s'en va." : `Il en manque ${res.reste} : il va au garage.`);
+}
+
+// B : le tour du robot, rapide.
+async function lancerApercu(coup) {
+  if (occupe) return;
+  occupe = true; coupsEssai++; choix = null;
+  const nv = niveau(), res = Moteur.jouer(etat, coup, nv, L, H, nv.garage);
   const [c, cap] = res.robot; let place = cap;
-  // le robot quitte sa file ou sa place : on l'enlève avant le tour
   if (coup.origine === "file") etat.tetes[coup.n]++; else etat.garage.splice(coup.n, 1);
   dessiner(); $("aide").textContent = "";
   for (const ev of res.evenements) {
-    placerRobot(ev.n, c, place);
-    await attendre(85);
+    placerRobotXY(...posArret(ev.n), c, place);
+    await attendre(22);
     if (ev.col !== null) {
-      dessiner([ev.col, ev.i]); placerRobot(ev.n, c, place); await attendre(170);
-      etat.cols[ev.col].splice(ev.i, 1); place--; dessiner(); placerRobot(ev.n, c, place); await attendre(110);
+      dessiner([[ev.col, ev.i]]); placerRobotXY(...posArret(ev.n), c, place); await attendre(110);
+      etat.cols[ev.col].splice(ev.i, 1); place--; dessiner(); placerRobotXY(...posArret(ev.n), c, place); await attendre(50);
     }
   }
-  await attendre(150);
-  occupe = false;
-  if (!res.etat) return perdu("Garage plein !", `Le robot n'avait plus de place.`);
-  etat = res.etat; dessiner();
-  $("aide").textContent = res.reste === 0 ? "Réservoir plein : il s'en va." : `Il en manque ${res.reste} : il va au garage.`;
-  if (Moteur.gagne(etat)) return gagne();
-  if (Moteur.bloque(etat, nv, L, H, nv.garage)) return perdu("Bloqué !", "Plus aucun robot ne peut rien aspirer.");
+  await attendre(120);
+  finDuCoup(res, res.reste === 0 ? "Réservoir plein : il s'en va." : `Il en manque ${res.reste} : il va au garage.`);
 }
 
 function noterEssai(issue) {
   session.niveaux[niv].essais.push({ issue, coups: coupsEssai, duree: Math.round((Date.now() - debutEssai) / 1000) });
-  const d = lire(); d[testeur] = session; ecrireStock(d);
+  garderSession();
 }
 
 function gagne() {
   noterEssai("gagné");
-  const dernier = niv === NIVEAUX.length - 1;
+  const dernier = niv === NIVEAUX[variante].length - 1;
   voile(`<div class="titre">Bravo !</div><p>Image vidée en ${coupsEssai} coups.</p>
     <button class="gros-bouton" id="suite">${dernier ? "Terminer" : "Niveau suivant"}</button>`);
   $("suite").onclick = () => { if (dernier) terminer(); else { niv++; commencerNiveau(); } };
 }
 
 function perdu(titre, texte) {
-  noterEssai("perdu"); momentPerte = Date.now();
-  const essais = session.niveaux[niv].essais.length;
+  noterEssai("perdu"); momentPerte = Date.now(); choix = null;
+  const essais = session.niveaux[niv].essais.length, dernier = niv === NIVEAUX[variante].length - 1;
   const offre = session.offre === null
     ? `<div class="question">Dans le vrai jeu, <b>une place de garage en plus</b> coûterait <b>0,99 €</b>. Tu la prendrais ?<br>
        <small>(Une question du test : rien n'est payé.)</small><div class="choix"><button data-offre="oui">Oui</button><button data-offre="non">Non</button></div></div>` : "";
   voile(`<div class="titre">${titre}</div><p>${texte}</p>${offre}
     <button class="gros-bouton" id="reessayer">Réessayer</button>
-    ${essais >= 3 ? `<button class="gros-bouton clair" id="passer">${niv === NIVEAUX.length - 1 ? "Terminer" : "Passer au niveau suivant"}</button>` : ""}`);
+    ${essais >= 3 ? `<button class="gros-bouton clair" id="passer">${dernier ? "Terminer" : "Passer au niveau suivant"}</button>` : ""}`);
   document.querySelectorAll("[data-offre]").forEach(b => b.onclick = () => {
-    session.offre = b.dataset.offre; const d = lire(); d[testeur] = session; ecrireStock(d);
+    session.offre = b.dataset.offre; garderSession();
     b.parentElement.parentElement.innerHTML = "Merci, c'est noté.";
   });
   $("reessayer").onclick = () => {
     const e = session.niveaux[niv].essais; e[e.length - 1].avantReessai = Math.round((Date.now() - momentPerte) / 1000);
     commencerNiveau();
   };
-  if ($("passer")) $("passer").onclick = () => { if (niv === NIVEAUX.length - 1) terminer(); else { niv++; commencerNiveau(); } };
+  if ($("passer")) $("passer").onclick = () => { if (dernier) terminer(); else { niv++; commencerNiveau(); } };
 }
 
 function terminer() {
   voile(""); session.fini = true; session.fin = Date.now();
-  const d = lire(); d[testeur] = session; ecrireStock(d);
+  garderSession();
   document.querySelectorAll("[data-redemande]").forEach(b => { b.classList.remove("oui"); b.onclick = () => {
     session.redemande = b.dataset.redemande; document.querySelectorAll("[data-redemande]").forEach(x => x.classList.toggle("oui", x === b)); }; });
   $("notes").value = session.notes || "";
   montrer("fin");
 }
-function garderFin() { session.notes = $("notes").value.trim(); const d = lire(); d[testeur] = session; ecrireStock(d); }
+function garderFin() { session.notes = $("notes").value.trim(); garderSession(); }
 $("enregistrer").onclick = () => { garderFin(); testeur = Math.min(5, testeur + 1); $("prenom").value = ""; accueil(); };
 $("rejouer").onclick = () => { session.rejoue = true; if (!session.redemande) session.redemande = "oui"; garderFin(); niv = 0; commencerNiveau(); };
 
-// ——— le bilan ———
+// ——— le bilan, une table et un verdict par variante ———
 function texteNiveau(n) {
   if (!n || !n.essais.length) return "—";
   const e = n.essais, g = e.findIndex(x => x.issue === "gagné");
   return g >= 0 ? `✓ au ${g + 1}${g ? "e" : "er"} essai` : `✗ ${e.length} essai${e.length > 1 ? "s" : ""}`;
 }
-function bilan() {
-  const d = lire(); let redemandes = 0, faits = 0, lignes = [];
+function bilanVariante(v, d) {
+  let redemandes = 0, faits = 0;
+  const lignes = [];
   let h = `<tr><th>#</th><th>Prénom</th><th>N1</th><th>N2</th><th>N3</th><th>Durée</th><th>Réessaie (s)</th><th>0,99 €</th><th>Redemande</th><th>Ses mots</th></tr>`;
   for (let t = 1; t <= 5; t++) {
-    const s = d[t]; if (!s) { h += `<tr><td>${t}</td><td colspan="9" style="color:#9a8db0">pas encore joué</td></tr>`; continue; }
+    const s = d[v + t]; if (!s) { h += `<tr><td>${t}</td><td colspan="9" style="color:#9a8db0">pas encore joué</td></tr>`; continue; }
     faits += s.fini ? 1 : 0; if (s.redemande === "oui") redemandes++;
     const duree = s.niveaux.reduce((a, n) => a + n.essais.reduce((b, e) => b + e.duree, 0), 0);
     const reess = s.niveaux.flatMap(n => n.essais.filter(e => e.avantReessai !== undefined).map(e => e.avantReessai));
     const cols = [t, s.prenom || "", ...s.niveaux.map(texteNiveau), `${Math.floor(duree / 60)} min ${String(duree % 60).padStart(2, "0")}`,
       reess.join(", ") || "—", s.offre || "—", s.redemande || "—", s.notes || ""];
-    lignes.push(cols.join(" | "));
-    h += "<tr>" + cols.map((v, i) => `<td class="${i === 8 ? (v === "oui" ? "ok" : v === "non" ? "ko" : "") : ""}">${String(v).replace(/</g, "&lt;")}</td>`).join("") + "</tr>";
+    lignes.push(`${v}${cols.join(" | ")}`);
+    h += "<tr>" + cols.map((x, i) => `<td class="${i === 8 ? (x === "oui" ? "ok" : x === "non" ? "ko" : "") : ""}">${String(x).replace(/</g, "&lt;")}</td>`).join("") + "</tr>";
   }
-  $("tableBilan").innerHTML = h;
   const verdict = faits < 5 ? `${faits} testeur${faits > 1 ? "s" : ""} sur 5 · ${redemandes} ${redemandes > 1 ? "ont" : "a"} redemandé une partie`
     : redemandes >= 3 ? `Porte ① passée : ${redemandes} sur 5 ont redemandé une partie.` : `Porte ① non passée : ${redemandes} sur 5 ont redemandé une partie (il en faut 3).`;
-  $("verdict").textContent = verdict;
+  $("tableBilan" + v).innerHTML = h; $("verdict" + v).textContent = verdict;
+  return `${v} · ${VARIANTES[v].nom} — ${verdict}\n` + (lignes.length ? lignes.join("\n") : "(personne)");
+}
+function bilan() {
+  const d = lire(), textes = ["A", "B"].map(v => bilanVariante(v, d));
+  $("copier").textContent = "Copier le bilan";
   $("copier").onclick = () => {
-    const txt = "Sandcade — le test, seul\n" + verdict + "\n# | Prénom | N1 | N2 | N3 | Durée | Réessaie (s) | 0,99 € | Redemande | Ses mots\n" + lignes.join("\n");
+    const txt = "Sandcade — le test, seul, deux variantes\n# | Prénom | N1 | N2 | N3 | Durée | Réessaie (s) | 0,99 € | Redemande | Ses mots\n\n" + textes.join("\n\n");
     (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => $("copier").textContent = "Copié ✓",
       () => { prompt("Copier le bilan :", txt); });
   };
-  $("effacer").onclick = () => { if (confirm("Effacer les résultats des 5 testeurs ? Ce n'est pas réversible.")) { stock.removeItem(CLE); bilan(); } };
+  $("effacer").onclick = () => { if (confirm("Effacer les résultats des deux variantes ? Ce n'est pas réversible.")) { stock.removeItem(CLE); bilan(); } };
   montrer("bilan");
 }
 
