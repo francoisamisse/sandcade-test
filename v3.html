@@ -32,14 +32,14 @@
   .touches.peu b { animation: battre .6s ease-in-out infinite; display:inline-block; }
   @keyframes battre { 50% { transform:scale(1.25); } }
   .son { width:38px; height:38px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:17px; cursor:pointer; flex:none; }
-  canvas { display:block; margin:0 auto; touch-action:none; }
-  .bas { display:flex; align-items:center; gap:10px; margin-top:6px; }
+  canvas { display:block; margin:0 auto; touch-action:none; flex:none; }
+  .bas { display:flex; align-items:center; gap:10px; margin-top:6px; flex:none; height:68px; }
   .pelle { flex:none; display:flex; align-items:center; gap:6px; font:16px "Titan One"; color:#3b0f78; border:0; border-radius:18px; padding:8px 14px;
     background:linear-gradient(#ffffff, #e5dcff); box-shadow:0 4px 0 #9b8ac7; cursor:pointer; }
   .pelle.armee { background:linear-gradient(#FFE066, #FFB21F); box-shadow:0 4px 0 #b86a00, 0 0 18px 4px #FFD23F; }
   .pelle:disabled { opacity:.4; }
   .pelle .ico { font-size:22px; }
-  .aide { flex:1; color:#efe8ff; font-size:14px; line-height:1.3; background:#12042fcc; border-radius:14px; padding:6px 10px; }
+  .aide { flex:1; color:#efe8ff; font-size:13.5px; line-height:1.28; max-height:64px; overflow:hidden; background:#12042fcc; border-radius:14px; padding:6px 10px; }
   .aide:empty { background:none; padding:0; }   /* sur un décor clair, le texte garde un fond sombre (SAB-032) */
   .voile { position:fixed; inset:0; background:#12042fcc; display:none; align-items:center; justify-content:center; padding:24px; z-index:20; }
   .voile.vu { display:flex; }
@@ -50,15 +50,65 @@
   .etoiles .vide { color:#d8cfee; text-shadow:none; }
   .offre { background:#fff6d6; border-radius:16px; padding:12px; margin:12px 0 4px; font-size:15px; }
   .offre small { color:#7a6a99; }
+  /* le test de la porte ① (SAB-034) */
+  .ecran.defile { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ecran.defile.vu { display:block; }
+  .clair-carte { background:linear-gradient(#ffffff, #efe8ff); color:#2a0b55; border-radius:20px; padding:14px; margin:10px 0; box-shadow:0 6px 0 #9b8ac7; }
+  .clair-carte .t { font:18px "Titan One"; color:#3b0f78; text-align:center; margin-bottom:6px; }
+  .testeurs { display:flex; gap:8px; justify-content:center; margin:8px 0; }
+  .testeurs button { width:46px; height:46px; border-radius:50%; border:2px solid #6a3bd1; background:#fff; color:#6a3bd1; font:19px "Titan One"; position:relative; cursor:pointer; }
+  .testeurs button.choisi { background:#6a3bd1; color:#fff; }
+  .testeurs button.fait::after { content:"✓"; position:absolute; right:-4px; top:-6px; font:12px sans-serif; background:#0f7a3c; color:#fff; border-radius:50%; width:18px; height:18px; line-height:18px; }
+  .clair-carte input, .clair-carte textarea { width:100%; font:16px -apple-system, Arial, sans-serif; padding:10px; border-radius:12px; border:2px solid #d8cfee; margin-top:6px; }
+  .lien { background:none; border:0; color:#d9ccff; text-decoration:underline; font-size:14px; cursor:pointer; display:block; margin:10px auto; }
+  .choix { display:flex; gap:10px; justify-content:center; margin-top:8px; }
+  .choix button { font:18px "Titan One"; padding:8px 22px; border-radius:14px; border:2px solid #6a3bd1; background:#fff; color:#6a3bd1; cursor:pointer; }
+  .choix button.oui { background:#6a3bd1; color:#fff; }
+  table.bilan { border-collapse:collapse; font-size:12px; width:100%; }
+  table.bilan th, table.bilan td { border-bottom:1px solid #e3dcf3; padding:5px 4px; text-align:left; vertical-align:top; }
+  table.bilan td.ok { color:#0f7a3c; font-weight:700; } table.bilan td.ko { color:#c0143c; font-weight:700; }
+  .verdict { font:17px "Titan One"; text-align:center; color:#3b0f78; margin:4px 0 8px; }
 </style>
 </head>
 <body>
 
-<section class="ecran vu" id="accueil">
-  <div class="logo">Sandcade</div>
+<section class="ecran vu defile" id="accueil">
+  <div class="logo" style="margin-top:7vh">Sandcade</div>
   <p class="sous">Touche un paquet de sable :<br>le robot de sa couleur vient l'aspirer.<br>Vide l'image avant la fin des touches.</p>
-  <button class="bouton" id="jouer">Jouer</button>
-  <p class="petit-texte">Version 3 du prototype · avec le son · 3 niveaux</p>
+  <div class="clair-carte">
+    <div class="t">Le test (pour François)</div>
+    <div style="text-align:center;font-size:14px">Testeur n°</div>
+    <div class="testeurs" id="choixTesteur"></div>
+    <input id="prenom" placeholder="Prénom (facultatif)" autocomplete="off">
+    <button class="bouton" id="commencerTest" style="margin-top:12px">Commencer le test</button>
+  </div>
+  <button class="bouton clair" id="jouer">Jouer librement</button>
+  <button class="lien" id="voirBilan">Le bilan des testeurs</button>
+  <p class="petit-texte">Version 3 du prototype · avec le son · 3 niveaux · le jeu libre n'est pas compté</p>
+</section>
+
+<section class="ecran defile" id="fin">
+  <div class="logo" style="margin-top:6vh;font-size:44px">Merci !</div>
+  <div class="clair-carte" style="text-align:center;font-size:17px">C'est fini. Rends le téléphone à François.</div>
+  <div class="clair-carte">
+    <div class="t">Pour François</div>
+    <div style="text-align:center">A-t-il ou a-t-elle <b>redemandé une partie sans qu'on la propose</b> ?</div>
+    <div class="choix"><button data-redemande="oui">Oui</button><button data-redemande="non">Non</button></div>
+    <textarea id="notes" rows="3" placeholder="Ses mots : ce qui a plu, agacé, « dans le métro ? »"></textarea>
+    <button class="bouton clair" id="rejoueTest" style="margin-top:12px;font-size:18px">Il ou elle rejoue (de lui-même)</button>
+    <button class="bouton" id="enregistrer">Enregistrer et revenir</button>
+  </div>
+</section>
+
+<section class="ecran defile" id="bilan">
+  <div class="logo" style="margin-top:4vh;font-size:40px">Le bilan</div>
+  <div class="clair-carte">
+    <div class="verdict" id="verdict"></div>
+    <div style="overflow-x:auto"><table class="bilan" id="tableBilan"></table></div>
+  </div>
+  <button class="bouton" id="copier">Copier le bilan</button>
+  <button class="bouton clair" id="retourAccueil">Revenir</button>
+  <button class="lien" id="effacer">Effacer tous les résultats</button>
 </section>
 
 <section class="ecran" id="jeu">
@@ -197,18 +247,24 @@ const ORDRE = ["J", "O", "R", "V"];
 
 function montrer(i) { document.querySelectorAll(".ecran").forEach(e => e.classList.toggle("vu", e.id === i)); }
 function voile(html) { $("voileCarte").innerHTML = html; $("voile").classList.toggle("vu", !!html); }
-$("jouer").onclick = () => { audio(); niv = 0; commencer(); };
+$("jouer").onclick = () => { audio(); test = null; niv = 0; commencer(); };
 
+// L'écran (SAB-033) : le plateau aussi grand que la largeur le permet ; la toile prend toute la hauteur libre, les objectifs
+// (la barre des robots) restent en haut, le plateau descend vers le pouce, la pelle et l'aide sont tout en bas.
 function mesurer() {
-  const large = Math.min(innerWidth, 520) - 24, hautDispo = innerHeight - 46 - 70;
-  S = Math.floor(Math.min(large * .94 / w, hautDispo / (h + 2.5), 76));
-  P = S / G; W = large; HT = Math.round(S * (h + 2.5));
-  ox = Math.round((W - w * S) / 2); oy = Math.round(S * 2.25);
+  const jeu = $("jeu"), st = getComputedStyle(jeu);
+  const large = Math.min(innerWidth, 520) - 24;
+  const hautDispo = Math.max(200, jeu.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
+    - document.querySelector("#jeu .entete").offsetHeight - document.querySelector("#jeu .bas").offsetHeight - 6);
+  S = Math.floor(Math.min(large * .94 / w, hautDispo / (h + 2.5), 130));
+  P = S / G; W = large; HT = Math.floor(hautDispo);
+  const libre = HT - S * (h + 2.5);
+  ox = Math.round((W - w * S) / 2); oy = Math.round(S * 2.25 + libre * .6);
   dpr = Math.min(3, window.devicePixelRatio || 1);
   toile.width = W * dpr; toile.height = HT * dpr; toile.style.width = W + "px"; toile.style.height = HT + "px";
 }
 const xSlot = k => W * (ORDRE.indexOf(k) + .5) / 4 - S * .15;
-const Y_BARRE = () => S * .5, Y_VOL = () => S * 1.35;
+const Y_BARRE = () => S * .5, Y_VOL = () => oy - S * .9;
 
 function nouvelleCase(k) {
   const o = { id: id++, k, y: null, vy: 0, att: 0, ne: 0 };
@@ -218,7 +274,7 @@ function nouvelleCase(k) {
 function commencer() {
   const nv = NIVEAUX[niv];
   h = nv.image.length; w = nv.image[0].length; essai++;
-  touches = donnees = nv.touches; pelles = nv.pelles; passer = false; arme = false; occupe = false; gele = false; fini = false;
+  touches = donnees = nv.touches; pelles = nv.pelles; passer = false; debutEssai = Date.now(); finaleVue = false; arme = false; occupe = false; gele = false; fini = false;
   volants = []; etincelles = []; textes = []; pulsations = []; tuyau = null; vise = null; actif = null;
   montrer("jeu"); voile(""); mesurer();
   const decor = DECORS && DECORS[niv % DECORS.length];
@@ -374,13 +430,13 @@ async function finDuCoup() {
   if (MoteurV3.gagne(E)) { await finale(); return gagne(); }
   if (touches <= 0) return perdu();
   const encore = MoteurV3.finale(E).length - MoteurV3.FINALE;
-  if (!$("aide").textContent && encore <= 6) $("aide").textContent = `Plus que ${encore} case${encore > 1 ? "s" : ""} de sable avant la finale !`;
+  if (!$("aide").textContent && encore <= 6) $("aide").textContent = `Encore ${encore} case${encore > 1 ? "s" : ""} à aspirer avant la finale !`;
 }
 // La finale (Q-013) : il ne reste que FINALE cases de sable ou moins ; chaque robot aspire ce qui reste de sa couleur, tous ensemble.
 async function finale() {
   const reste = MoteurV3.finale(E);
   if (!reste.length) return;
-  occupe = enFinale = true; passer = false; $("aide").textContent = "Finale ! Les robots finissent le travail.";
+  occupe = enFinale = finaleVue = true; passer = false; $("aide").textContent = "Finale ! Les robots finissent le travail.";
   textes.push({ x: W / 2, y: oy - S * .2, t: 0, txt: "", gros: "Finale !" });
   sonNaissance();
   const parK = {};
@@ -408,6 +464,15 @@ function gagne() {
   const dernier = niv === NIVEAUX.length - 1, servies = donnees - touches, mini = NIVEAUX[niv].minimum;
   const etoiles = servies <= mini + 1 ? 3 : servies <= mini + 3 ? 2 : 1;
   sonNotes([523, 659, 784, 1047, 1319, 1568], "triangle", .09, .13);
+  noterEssai("gagné", etoiles);
+  // pendant le test, rien ne propose de rejouer : c'est au testeur de le demander (SAB-008, SAB-034)
+  if (test) return setTimeout(() => {
+    voile(`<div class="titre">Bravo !</div>
+      <div class="etoiles">${"★".repeat(etoiles)}<span class="vide">${"★".repeat(3 - etoiles)}</span></div>
+      <p style="font-size:16px">Image vidée en ${servies} touche${servies > 1 ? "s" : ""} !</p>
+      <button class="bouton" id="suite">${dernier ? "Terminer" : "Niveau suivant"}</button>`);
+    $("suite").onclick = () => { if (dernier) terminer(); else { niv++; commencer(); } };
+  }, 700);
   setTimeout(() => voile(`<div class="titre">Bravo !</div>
     <div class="etoiles">${"★".repeat(etoiles)}<span class="vide">${"★".repeat(3 - etoiles)}</span></div>
     <p style="font-size:16px">Image vidée en ${servies} touche${servies > 1 ? "s" : ""} (le meilleur : ${mini}) !</p>
@@ -422,15 +487,111 @@ function perdu() {
   fini = true;
   const cases = E.reduce((a, col) => a + [...col].filter(ch => "JORV".includes(ch)).length, 0);
   sonNotes([392, 330, 262], "sine", .14, .1);
+  if (test) return perduTest(cases);
   setTimeout(() => {
     voile(`<div class="titre">Plus de touches !</div><p style="font-size:16px">Il restait ${cases} case${cases > 1 ? "s" : ""} de sable.</p>
-      <div class="offre"><b>+5 touches</b> pour <b>0,99 €</b> ?<br><small>(Une question du test : rien n'est payé, tu les reçois gratuitement.)</small>
+      <div class="offre"><b>+5 touches</b> pour <b>0,99 €</b> ?<br><small>(Jeu libre : rien n'est payé, tu les reçois gratuitement.)</small>
       <button class="bouton vert" id="plus5" style="font-size:20px;margin-top:10px">Oui, +5 touches</button></div>
       <button class="bouton clair" id="reessayer">Réessayer le niveau</button>`);
     $("plus5").onclick = () => { touches += 5; donnees += 5; fini = false; afficher(); voile(""); $("aide").textContent = "+5 touches : à toi !"; };
     $("reessayer").onclick = commencer;
   }, 600);
 }
+
+// ——— le test de la porte ① (SAB-034) : 5 testeurs, l'un après l'autre, sur le téléphone de François ———
+// Les résultats restent sur l'appareil (localStorage, clé propre à la version 3) ; le jeu libre n'écrit rien.
+const CLE = "sandcade-test-v3";
+let memoire = "{}";
+const stock = (() => { try { localStorage.setItem(CLE + "-essai", "1"); localStorage.removeItem(CLE + "-essai"); return localStorage; }
+  catch (e) { return { getItem: () => memoire, setItem: (k, v) => { memoire = v; }, removeItem: () => { memoire = "{}"; } }; } })();
+const lire = () => JSON.parse(stock.getItem(CLE) || "{}");
+const ecrireStock = d => stock.setItem(CLE, JSON.stringify(d));
+let test = null, testeur = 1, debutEssai = 0, momentPerte = 0, finaleVue = false;
+function garderSession() { if (!test) return; const d = lire(); d["T" + testeur] = test; ecrireStock(d); }
+function montrerHors(id) { document.body.style.background = ""; voile(""); montrer(id); document.getElementById(id).scrollTop = 0; }
+function accueil() {
+  const d = lire();
+  $("choixTesteur").innerHTML = [1, 2, 3, 4, 5].map(n => `<button data-t="${n}" class="${n === testeur ? "choisi" : ""} ${d["T" + n] && d["T" + n].fini ? "fait" : ""}">${n}</button>`).join("");
+  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { testeur = +b.dataset.t; $("prenom").value = (lire()["T" + testeur] || {}).prenom || ""; accueil(); });
+  montrerHors("accueil");
+}
+$("commencerTest").onclick = () => {
+  audio();
+  test = { prenom: $("prenom").value.trim(), debut: Date.now(), niveaux: NIVEAUX.map(() => ({ essais: [] })), offre: null, offreNiveau: null,
+           redemande: null, notes: "", rejoue: false, fini: false };
+  garderSession(); niv = 0; commencer();
+};
+$("voirBilan").onclick = bilan;
+$("retourAccueil").onclick = accueil;
+function noterEssai(issue, etoiles = 0) {
+  if (!test) return;
+  test.niveaux[niv].essais.push({ issue, duree: Math.round((Date.now() - debutEssai) / 1000), touches: donnees - touches, etoiles,
+    pelle: pelles < NIVEAUX[niv].pelles, finale: finaleVue });
+  garderSession();
+}
+// Perdu pendant le test : la question des 0,99 € une seule fois (rien n'est payé, aucune touche n'est donnée) ; « Passer » après 3 essais.
+function perduTest(cases) {
+  noterEssai("perdu"); momentPerte = Date.now();
+  const essais = test.niveaux[niv].essais.length, dernier = niv === NIVEAUX.length - 1;
+  setTimeout(() => {
+    voile(`<div class="titre">Plus de touches !</div><p style="font-size:16px">Il restait ${cases} case${cases > 1 ? "s" : ""} de sable.</p>
+      ${test.offre === null ? `<div class="offre">Dans le vrai jeu, <b>+5 touches</b> coûteraient <b>0,99 €</b>. Tu les prendrais ?<br>
+        <small>(Une question du test : rien n'est payé.)</small><div class="choix"><button data-offre="oui">Oui</button><button data-offre="non">Non</button></div></div>` : ""}
+      <button class="bouton" id="reessayer">Réessayer</button>
+      ${essais >= 3 ? `<button class="bouton clair" id="passerNiveau">${dernier ? "Terminer" : "Passer au niveau suivant"}</button>` : ""}`);
+    document.querySelectorAll("[data-offre]").forEach(b => b.onclick = () => {
+      test.offre = b.dataset.offre; test.offreNiveau = niv + 1; garderSession(); b.parentElement.parentElement.innerHTML = "Merci, c'est noté.";
+    });
+    $("reessayer").onclick = () => { const e = test.niveaux[niv].essais; e[e.length - 1].avantReessai = Math.round((Date.now() - momentPerte) / 1000); garderSession(); commencer(); };
+    if ($("passerNiveau")) $("passerNiveau").onclick = () => { if (dernier) terminer(); else { niv++; commencer(); } };
+  }, 600);
+}
+function terminer() {
+  test.fini = true; test.fin = Date.now(); garderSession();
+  document.querySelectorAll("[data-redemande]").forEach(b => { b.classList.toggle("oui", b.dataset.redemande === test.redemande); b.onclick = () => {
+    test.redemande = b.dataset.redemande; document.querySelectorAll("[data-redemande]").forEach(x => x.classList.toggle("oui", x === b)); garderSession(); }; });
+  $("notes").value = test.notes || "";
+  montrerHors("fin");
+}
+function garderFin() { test.notes = $("notes").value.trim(); garderSession(); }
+$("enregistrer").onclick = () => { garderFin(); testeur = Math.min(5, testeur + 1); test = null; $("prenom").value = ""; accueil(); };
+$("rejoueTest").onclick = () => { test.rejoue = true; if (!test.redemande) test.redemande = "oui"; garderFin(); niv = 0; commencer(); };
+// le bilan : une ligne par testeur, et le verdict de la porte (3 sur 5, SAB-008)
+function texteNiveau(n) {
+  if (!n || !n.essais.length) return "—";
+  const e = n.essais, g = e.findIndex(x => x.issue === "gagné");
+  return g >= 0 ? `✓ ${g + 1}${g ? "e" : "er"} essai ${"★".repeat(e[g].etoiles)}` : `✗ ${e.length} essai${e.length > 1 ? "s" : ""}`;
+}
+function bilan() {
+  const d = lire(), lignes = [];
+  let redemandes = 0, faits = 0;
+  const tete = ["#", "Prénom", "N1", "N2", "N3", "Durée", "Réessaie (s)", "0,99 €", "Pelle", "Finale", "Redemande", "Ses mots"];
+  let html = "<tr>" + tete.map(x => `<th>${x}</th>`).join("") + "</tr>";
+  for (let t = 1; t <= 5; t++) {
+    const s = d["T" + t];
+    if (!s) { html += `<tr><td>${t}</td><td colspan="${tete.length - 1}" style="color:#9a8db0">pas encore joué</td></tr>`; continue; }
+    faits += s.fini ? 1 : 0; if (s.redemande === "oui") redemandes++;
+    const tous = s.niveaux.flatMap(n => n.essais);
+    const duree = tous.reduce((a, e) => a + e.duree, 0);
+    const reess = tous.filter(e => e.avantReessai !== undefined).map(e => e.avantReessai);
+    const cols = [t, s.prenom || "", ...s.niveaux.map(texteNiveau), `${Math.floor(duree / 60)} min ${String(duree % 60).padStart(2, "0")}`,
+      reess.join(", ") || "—", s.offre ? `${s.offre} (N${s.offreNiveau})` : "—", `${tous.filter(e => e.pelle).length}/${tous.length}`,
+      `${tous.filter(e => e.finale).length}/${tous.length}`, s.redemande || "—", s.notes || ""];
+    lignes.push(cols.join(" | "));
+    html += "<tr>" + cols.map((x, i) => `<td class="${i === 10 ? (x === "oui" ? "ok" : x === "non" ? "ko" : "") : ""}">${String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</td>`).join("") + "</tr>";
+  }
+  const verdict = faits < 5 ? `${faits} testeur${faits > 1 ? "s" : ""} sur 5 · ${redemandes} ${redemandes > 1 ? "ont" : "a"} redemandé une partie`
+    : redemandes >= 3 ? `Porte ① passée : ${redemandes} sur 5 ont redemandé une partie.` : `Porte ① non passée : ${redemandes} sur 5 ont redemandé une partie (il en faut 3).`;
+  $("tableBilan").innerHTML = html; $("verdict").textContent = verdict;
+  $("copier").textContent = "Copier le bilan";
+  $("copier").onclick = () => {
+    const txt = `Sandcade — le test de la porte ①, version 3\n${verdict}\n${tete.join(" | ")}\n` + (lignes.length ? lignes.join("\n") : "(personne)");
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => $("copier").textContent = "Copié ✓", () => { prompt("Copier le bilan :", txt); });
+  };
+  $("effacer").onclick = () => { if (confirm("Effacer les résultats des 5 testeurs ? Ce n'est pas réversible.")) { stock.removeItem(CLE); bilan(); } };
+  montrerHors("bilan");
+}
+accueil();
 
 // ——— l'animation ———
 let avant = performance.now();
