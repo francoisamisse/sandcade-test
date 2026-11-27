@@ -25,22 +25,26 @@
   .bouton.clair { background:linear-gradient(#ffffff, #e5dcff); color:#3b0f78; box-shadow:0 6px 0 #9b8ac7, 0 10px 24px #0008; }
   .bouton.vert { background:linear-gradient(#7CF29A, #2FBF5B); color:#06301a; box-shadow:0 6px 0 #1b7a3a, 0 10px 24px #0008; }
   .petit-texte { text-align:center; color:#a998dd; font-size:13px; margin-top:12px; }
-  .entete { display:flex; align-items:center; gap:8px; height:46px; flex:none; }
-  .entete .nom { flex:1; font:17px "Titan One"; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 0 #0006; }
-  .touches { font:16px "Titan One"; color:#3b0f78; background:#fff; border-radius:16px; padding:4px 12px; box-shadow:0 3px 0 #9b8ac7; white-space:nowrap; }
-  .touches b { font-size:22px; font-weight:normal; color:#e0256a; }
+  .entete { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; height:50px; flex:none; }
+  .entete .son { justify-self:end; }
+  .entete .nom { font:17px "Titan One"; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 0 #0006; }
+  .touches { font:15px "Titan One"; color:#3b0f78; background:#fff; border-radius:18px; padding:3px 16px; box-shadow:0 4px 0 #9b8ac7; white-space:nowrap; }
+  .touches b { font-size:28px; vertical-align:-3px; font-weight:normal; color:#e0256a; }
   .touches.peu b { animation: battre .6s ease-in-out infinite; display:inline-block; }
   @keyframes battre { 50% { transform:scale(1.25); } }
   .son { width:38px; height:38px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:17px; cursor:pointer; flex:none; }
   canvas { display:block; margin:0 auto; touch-action:none; flex:none; }
-  .bas { display:flex; align-items:center; gap:10px; margin-top:6px; flex:none; height:68px; }
-  .pelle { flex:none; display:flex; align-items:center; gap:6px; font:16px "Titan One"; color:#3b0f78; border:0; border-radius:18px; padding:8px 14px;
+  .bas { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:6px; flex:none; height:80px; }
+  .pelle { flex:none; position:relative; display:flex; align-items:center; justify-content:center; width:66px; height:66px; font:16px "Titan One"; color:#3b0f78; border:0; border-radius:20px; padding:0;
     background:linear-gradient(#ffffff, #e5dcff); box-shadow:0 4px 0 #9b8ac7; cursor:pointer; }
   .pelle.armee { background:linear-gradient(#FFE066, #FFB21F); box-shadow:0 4px 0 #b86a00, 0 0 18px 4px #FFD23F; }
   .pelle:disabled { opacity:.4; }
-  .pelle .ico { font-size:22px; }
-  .aide { flex:1; color:#efe8ff; font-size:13.5px; line-height:1.28; max-height:64px; overflow:hidden; background:#12042fcc; border-radius:14px; padding:6px 10px; }
-  .aide:empty { background:none; padding:0; }   /* sur un décor clair, le texte garde un fond sombre (SAB-032) */
+  .pelle .ico { font-size:34px; }
+  .pelle #pellesTexte { position:absolute; right:-7px; bottom:-7px; min-width:26px; height:26px; line-height:22px; border-radius:13px; background:#e0256a; color:#fff;
+    font:15px "Titan One"; border:2px solid #fff; padding:0 5px; }
+  .aide { flex:none; text-align:center; margin:2px 6px 4px; height:46px; display:flex; align-items:center; justify-content:center;
+    color:#efe8ff; font-size:13.5px; line-height:1.25; overflow:hidden; background:#12042fcc; border-radius:14px; padding:4px 12px; }
+  .aide:empty { background:none; }   /* sur un décor clair, le texte garde un fond sombre (SAB-032) */
   .voile { position:fixed; inset:0; background:#12042fcc; display:none; align-items:center; justify-content:center; padding:24px; z-index:20; }
   .voile.vu { display:flex; }
   .voile .carte { background:linear-gradient(#ffffff, #efe8ff); color:#2a0b55; border-radius:26px; padding:20px 18px; max-width:380px; width:100%;
@@ -113,8 +117,9 @@
 
 <section class="ecran" id="jeu">
   <div class="entete"><div class="nom" id="nomNiveau"></div><div class="touches" id="touches"></div><button class="son" id="son">🔊</button></div>
+  <div class="aide" id="aide"></div>
   <canvas id="toile"></canvas>
-  <div class="bas"><button class="pelle" id="pelle"><span class="ico">🪏</span><span id="pellesTexte"></span></button><div class="aide" id="aide"></div></div>
+  <div class="bas"><button class="pelle" id="pelle" aria-label="La pelle"><span class="ico">🪏</span><span id="pellesTexte"></span></button></div>
 </section>
 
 <div class="voile" id="voile"><div class="carte" id="voileCarte"></div></div>
@@ -242,6 +247,7 @@ if (SPRITES) for (const k in SPRITES) { IMG[k] = new Image(); IMG[k].src = SPRIT
 const toile = $("toile"), ctx = toile.getContext("2d");
 let niv = 0, w = 0, h = 0, S = 60, P = 5, W = 360, HT = 600, ox = 0, oy = 0, dpr = 1;
 let E = [], V = [], id = 0, touches = 0, pelles = 0, arme = false, occupe = false, gele = false, fini = false, essai = 0, donnees = 0, passer = false;
+let guide = null;   // la case que montre la main du niveau 1, ou null
 let volants = [], etincelles = [], textes = [], pulsations = [], robots = {}, actif = null, tuyau = null, secousse = 0, vise = null;
 const ORDRE = ["J", "O", "R", "V"];
 
@@ -255,7 +261,7 @@ function mesurer() {
   const jeu = $("jeu"), st = getComputedStyle(jeu);
   const large = Math.min(innerWidth, 520) - 24;
   const hautDispo = Math.max(200, jeu.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
-    - document.querySelector("#jeu .entete").offsetHeight - document.querySelector("#jeu .bas").offsetHeight - 6);
+    - document.querySelector("#jeu .entete").offsetHeight - document.querySelector("#jeu .bas").offsetHeight - $("aide").offsetHeight - 12);
   S = Math.floor(Math.min(large * .94 / w, hautDispo / (h + 2.5), 130));
   P = S / G; W = large; HT = Math.floor(hautDispo);
   const libre = HT - S * (h + 2.5);
@@ -283,16 +289,18 @@ function commencer() {
   V = E.map(col => [...col].map(nouvelleCase));
   placerTout(true);
   robots = {}; for (const k of ORDRE) robots[k] = { k, x: xSlot(k), y: Y_BARRE(), tx: xSlot(k), ty: Y_BARRE(), vx: 0, vy: 0, taille: .48, tt: .48, recu: 0, attendu: 1, bulle: 0, non: 0 };
-  $("nomNiveau").textContent = `${niv + 1}. ${nv.nom}`;
+  $("nomNiveau").textContent = `Niveau ${niv + 1}`; $("nomNiveau").title = nv.nom;
+  textes.push({ x: W / 2, y: -S * 3, t: 0, txt: "", gros: nv.nom });       // le nom du niveau, en bannière au départ
+  guide = niv === 0 ? [1, 2] : null;                                      // la main du niveau 1 : le paquet qui donne un turbo
   afficher();
-  $("aide").textContent = niv === 0 ? `Touche un paquet : le robot de sa couleur l'aspire. À ${MoteurV3.FINALE} cases, les robots finissent tout seuls !`
+  $("aide").textContent = niv === 0 ? `Touche un paquet : le robot de sa couleur l'aspire. À ${MoteurV3.FINALE} cases, les robots finissent !`
     : E.some(c => c.includes("P")) ? "Les pierres ne s'aspirent pas : la pelle ou un turbo les enlève." : "Prévois tes coups : fais tomber le sable pour coller les couleurs.";
 }
 function reste(k) { return E.reduce((a, col) => a + [...col].filter(ch => ch === k).length, 0); }
 function afficher() {
   $("touches").innerHTML = `<b>${touches}</b> touche${touches > 1 ? "s" : ""}`;
   $("touches").classList.toggle("peu", touches <= 2);
-  $("pellesTexte").textContent = `× ${pelles}`; $("pelle").disabled = pelles <= 0; $("pelle").classList.toggle("armee", arme);
+  $("pellesTexte").textContent = pelles; $("pelle").disabled = pelles <= 0; $("pelle").classList.toggle("armee", arme);
 }
 
 // les positions : la règle décide de la case, la chute fait le reste
@@ -315,7 +323,7 @@ toile.addEventListener("pointerdown", e => {
   if (arme) { vise = new Set([V[p[0]][p[1]].id]); return; }
   const res = MoteurV3.toucher(E, ...p);
   if (res) vise = new Set(res.pris.map(([c, i]) => V[c][i].id));
-  if (res && res.agit === "turbo") $("aide").textContent = "Le turbo prend toute cette rangée, de gauche à droite (pierres comprises).";
+  if (res && res.agit === "turbo") $("aide").textContent = "Le turbo prend toute cette rangée, de gauche à droite.";
 });
 toile.addEventListener("pointerup", e => { vise = null; if (enFinale) { passer = true; return; } const p = caseSous(...point(e)); if (p) toucherCase(...p); });
 toile.addEventListener("pointercancel", () => { vise = null; });
@@ -352,8 +360,9 @@ async function toucherCase(c, i) {
   if (occupe || fini || !V[c] || !V[c][i]) return;
   if (arme) return pelleCase(c, i);
   const res = MoteurV3.toucher(E, c, i);
-  if (!res) { sonNon(); $("aide").textContent = "Une pierre ne s'aspire pas : utilise la pelle, ou un turbo sur sa rangée (horizontale)."; return; }
+  if (!res) { sonNon(); $("aide").textContent = "Une pierre ne s'aspire pas : la pelle ou un turbo sur sa rangée l'enlève."; return; }
   occupe = true; touches--; afficher(); $("aide").textContent = "";
+  if (res.agit !== "sable") guide = null;
   const [bx, by] = centre(c, i);
   if (res.agit === "sable") {
     // le robot de sa couleur quitte la barre, glisse à l'aplomb, descend son tuyau ; le paquet file dedans
@@ -366,6 +375,7 @@ async function toucherCase(c, i) {
     r.attendu = volants.filter(v => v.compte && !v.fini).length || 1;
     sonAspire(Math.max(.35, duree));
     appliquer(res, c, i);
+    guide = guide && res.nait === "T" ? [c, E[c].indexOf("T")] : null;
     if (res.pris.length >= 8) secousse = Math.min(6, res.pris.length / 3);
     await attendre(duree * 1000 + 60);
     tuyau.remonte = true; gele = false; placerTout(false); sonChute();
@@ -375,7 +385,7 @@ async function toucherCase(c, i) {
     for (let n = 0; n < (gros ? 26 : 12); n++) etincelles.push({ x: r.x, y: r.y, vx: hasard(-1, 1) * S * 3, vy: hasard(-1.4, .2) * S * 3, t: 0, k: res.k });
     await attendre(150);
     tuyau = null; r.tx = xSlot(r.k); r.ty = Y_BARRE(); r.tt = .48; actif = null;
-    if (res.nait) $("aide").textContent = res.nait === "T" ? "Un turbo ! Touche-le : il file de gauche à droite et aspire toute sa rangée ⇆, pierres comprises." : "Un arc-en-ciel ! Touche-le : il aspire tout le sable de sa couleur.";
+    if (res.nait) $("aide").textContent = res.nait === "T" ? "Un turbo ! Touche-le : il aspire toute sa rangée ⇆, pierres comprises." : "Un arc-en-ciel ! Touche-le : il aspire tout le sable de sa couleur.";
   } else if (res.agit === "turbo") {
     // le turbo file d'un bord à l'autre le long de la rangée ; les grains sautent dedans à son passage
     const r = actif = { k: "T", x: -S, y: by, tx: W + S * 1.5, ty: by, vx: 0, vy: 0, taille: .8, tt: .8, recu: 0, attendu: 1, bulle: 0, non: 0, turbo: true };
@@ -409,7 +419,7 @@ async function toucherCase(c, i) {
 }
 
 async function pelleCase(c, i) {
-  occupe = true; arme = false; pelles--; afficher(); sonPelle();
+  guide = null; occupe = true; arme = false; pelles--; afficher(); sonPelle();
   gele = true;
   const o = V[c][i], [x, y] = centre(c, i);
   if (o.grains) for (const gr of o.grains) volants.push({ x0: ox + c * S + gr.u * P, y0: gr.y, x: 0, y: 0, coul: gr.coul, t: -hasard(0, .12), dur: hasard(.35, .55), cote: hasard(-1, 1),
@@ -697,11 +707,17 @@ function dessiner(t) {
   for (const k of ORDRE) if (robots[k] !== actif) { ctx.globalAlpha = reste(k) ? 1 : .35; dessinerRobot(robots[k], t); ctx.globalAlpha = 1; }
   if (actif) dessinerRobot(actif, t);
   for (const e of etincelles) { const a = 1 - e.t / .7; ctx.fillStyle = e.t < .15 ? "#fff" : hsl(e.k, 15, a); ctx.beginPath(); ctx.arc(e.x, e.y, S * .06 * (1 + a), 0, 7); ctx.fill(); }
+  if (guide && !occupe && !fini && V[guide[0]] && V[guide[0]][guide[1]]) {
+    const [gx, gy] = centre(guide[0], guide[1]), b = Math.abs(Math.sin(t * 4)) * S * .15;
+    ctx.save(); ctx.font = `${Math.round(S * .8)}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.shadowColor = "#000a"; ctx.shadowBlur = 8; ctx.fillText("👆", gx + S * .3, gy + S * .22 + b); ctx.restore();
+  }
   for (const tx of textes) {
     const a = Math.min(1, 2.4 - tx.t * 2), y = tx.y - tx.t * S * .9;
     ctx.globalAlpha = Math.max(0, a); ctx.textAlign = "center"; ctx.lineJoin = "round"; ctx.lineWidth = 6; ctx.strokeStyle = "#1b0745";
     ctx.font = `${Math.round(S * .55)}px "Titan One"`; ctx.strokeText(tx.txt, tx.x, y); ctx.fillStyle = "#fff"; ctx.fillText(tx.txt, tx.x, y);
-    if (tx.gros) { const z = 1 + .25 * Math.max(0, 1 - tx.t * 4); ctx.font = `${Math.round(S * .62 * z)}px "Titan One"`; ctx.strokeText(tx.gros, W / 2, oy + h * S * .45); ctx.fillStyle = "#FFD23F"; ctx.fillText(tx.gros, W / 2, oy + h * S * .45); }
+    if (tx.gros) { const z = 1 + .25 * Math.max(0, 1 - tx.t * 4); ctx.font = `${Math.round(S * .62 * z)}px "Titan One"`;
+      const lw = ctx.measureText(tx.gros).width; if (lw > W * .92) ctx.font = `${Math.round(S * .62 * z * W * .92 / lw)}px "Titan One"`; ctx.strokeText(tx.gros, W / 2, oy + h * S * .45); ctx.fillStyle = "#FFD23F"; ctx.fillText(tx.gros, W / 2, oy + h * S * .45); }
     ctx.globalAlpha = 1;
   }
 }
