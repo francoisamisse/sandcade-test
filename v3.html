@@ -282,7 +282,7 @@ function envoler(cases, cible, retard, compte = true) {
 function appliquer(res, c, i) {
   const pris = new Set(res.pris.map(([a, b]) => a + "," + b));
   V = V.map((col, cc) => col.filter((_, ii) => !pris.has(cc + "," + ii)));
-  if (res.nait) { const o = nouvelleCase(res.nait), j = Math.min(i, V[c].length); o.y = yCase(j); o.ne = 1; V[c].splice(j, 0, o); }
+  if (res.nait) { const o = nouvelleCase(res.nait), j = Math.min(i, V[c].length); o.y = yCase(j); o.ne = 1; o.montre = res.nait === "T" ? 1.6 : 0; V[c].splice(j, 0, o); }
   E = res.cols;
   const dessine = V.map(col => col.map(o => o.k).join(""));
   if (JSON.stringify(dessine) !== JSON.stringify(E)) console.error("écart entre l'image et la règle", dessine, E);
@@ -450,6 +450,7 @@ function avancer(dt) {
     });
     else { const ty = yCase(i); if (o.y < ty) { o.vy += S * 38 * dt; o.y = Math.min(ty, o.y + o.vy * dt); } else { o.y = ty; o.vy = 0; } }
     if (o.ne > 0) o.ne = Math.max(0, o.ne - dt * 2.5);
+    if (o.montre > 0) o.montre = Math.max(0, o.montre - dt);
   }));
   for (const k of ORDRE) { const r = robots[k]; ressort(r, dt); r.non = Math.max(0, r.non - dt); r.bulle = Math.max(0, r.bulle - dt * 4); }
   if (actif && actif.turbo) { actif.x += (W + 3 * S) / .75 * dt; }
@@ -540,16 +541,19 @@ function dessiner(t) {
   }
 }
 
-// La rangée que vise un turbo : une bande, des chevrons › qui filent de gauche à droite, une flèche à chaque bord.
+// La rangée que vise un turbo. Au repos : une petite flèche à chaque bord du bac, rien sur le sable (SAB-030).
+// À sa naissance (1,6 s) et tant qu'on appuie dessus : une bande et des chevrons › qui filent de gauche à droite.
 function dessinerRangee(o, t, presse) {
-  const y = o.y + S / 2, fort = presse ? 1 : Math.max(o.ne, .55 + .2 * Math.sin(t * 4));
+  const y = o.y + S / 2, fort = presse ? 1 : Math.min(1, o.montre || 0);
   ctx.save();
+  if (fort > 0) {
   ctx.fillStyle = `hsla(182,90%,65%,${.13 * fort})`; ctx.fillRect(ox, o.y + S * .08, w * S, S * .84);
   ctx.strokeStyle = `hsla(182,95%,80%,${.75 * fort})`; ctx.lineWidth = Math.max(2, S * .055); ctx.lineCap = "round"; ctx.lineJoin = "round";
   const pas = S * .5, d = (t * S * 1.4) % pas, a = S * .1;
   const xc = ox + (V.findIndex(col => col.includes(o)) + .5) * S;   // pas de chevron sur le robot lui-même
   for (let x = ox + d; x < ox + w * S; x += pas) { if (Math.abs(x - xc) < S * .5) continue; ctx.beginPath(); ctx.moveTo(x - a, y - a); ctx.lineTo(x, y); ctx.lineTo(x - a, y + a); ctx.stroke(); }
-  ctx.fillStyle = `hsla(182,95%,75%,${.95 * fort})`;
+  }
+  ctx.fillStyle = `hsla(182,95%,75%,${Math.max(fort, .5 + .25 * Math.sin(t * 3))})`;
   for (const [x, s] of [[ox - S * .18, -1], [ox + w * S + S * .18, 1]]) { ctx.beginPath(); ctx.moveTo(x + s * S * .16, y); ctx.lineTo(x - s * S * .02, y - S * .16); ctx.lineTo(x - s * S * .02, y + S * .16); ctx.fill(); }
   ctx.restore();
 }
