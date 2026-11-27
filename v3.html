@@ -13,7 +13,7 @@
   html, body { margin:0; height:100%; overflow:hidden; }
   body { font:16px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; color:#fff; user-select:none; -webkit-user-select:none;
     touch-action:none; background: radial-gradient(120% 80% at 50% 0%, #3a1590 0%, #22095e 45%, #12042f 100%) fixed; }
-  .ecran { display:none; position:absolute; inset:0; max-width:520px; margin:0 auto; padding:max(10px, env(safe-area-inset-top)) 12px 14px; }
+  .ecran { display:none; position:absolute; inset:0; max-width:520px; margin:0 auto; padding:max(6px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom)); }
   .ecran.vu { display:flex; flex-direction:column; }
   .logo { font:56px "Titan One"; text-align:center; margin:14vh 0 6px; letter-spacing:1px;
     background:linear-gradient(#FFD23F 0 32%, #FF8A2A 32% 56%, #F0478A 56% 78%, #9A5CFF 78%); -webkit-background-clip:text; background-clip:text;
@@ -25,8 +25,13 @@
   .bouton.clair { background:linear-gradient(#ffffff, #e5dcff); color:#3b0f78; box-shadow:0 6px 0 #9b8ac7, 0 10px 24px #0008; }
   .bouton.vert { background:linear-gradient(#7CF29A, #2FBF5B); color:#06301a; box-shadow:0 6px 0 #1b7a3a, 0 10px 24px #0008; }
   .petit-texte { text-align:center; color:#a998dd; font-size:13px; margin-top:12px; }
-  .entete { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; height:50px; flex:none; }
+  .entete { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; height:44px; flex:none; padding:0 4px; }
   .entete .son { justify-self:end; }
+  .entete .nom .dur { display:block; font-size:11px; color:#ff6b9a; letter-spacing:.5px; margin-top:-2px; }
+  .niveaux { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 4px; }
+  .niveaux button { font:15px "Titan One"; color:#3b0f78; background:#fff; border:2px solid #c9b8f5; border-radius:14px; padding:9px 6px; cursor:pointer; text-align:left; }
+  .niveaux button b { color:#e0256a; margin-right:4px; }
+  .niveaux button small { display:block; font-size:11px; color:#e0256a; }
   .entete .nom { font:17px "Titan One"; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 0 #0006; }
   .touches { font:15px "Titan One"; color:#3b0f78; background:#fff; border-radius:18px; padding:3px 16px; box-shadow:0 4px 0 #9b8ac7; white-space:nowrap; }
   .touches b { font-size:28px; vertical-align:-3px; font-weight:normal; color:#e0256a; }
@@ -34,7 +39,7 @@
   @keyframes battre { 50% { transform:scale(1.25); } }
   .son { width:38px; height:38px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:17px; cursor:pointer; flex:none; }
   canvas { display:block; margin:0 auto; touch-action:none; flex:none; }
-  .bas { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:6px; flex:none; height:80px; }
+  .bas { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:2px; flex:none; height:70px; }
   .pelle { flex:none; position:relative; display:flex; align-items:center; justify-content:center; width:66px; height:66px; font:16px "Titan One"; color:#3b0f78; border:0; border-radius:20px; padding:0;
     background:linear-gradient(#ffffff, #e5dcff); box-shadow:0 4px 0 #9b8ac7; cursor:pointer; }
   .pelle.armee { background:linear-gradient(#FFE066, #FFB21F); box-shadow:0 4px 0 #b86a00, 0 0 18px 4px #FFD23F; }
@@ -42,8 +47,8 @@
   .pelle .ico { font-size:34px; }
   .pelle #pellesTexte { position:absolute; right:-7px; bottom:-7px; min-width:26px; height:26px; line-height:22px; border-radius:13px; background:#e0256a; color:#fff;
     font:15px "Titan One"; border:2px solid #fff; padding:0 5px; }
-  .aide { flex:none; text-align:center; margin:2px 6px 4px; height:46px; display:flex; align-items:center; justify-content:center;
-    color:#efe8ff; font-size:13.5px; line-height:1.25; overflow:hidden; background:#12042fcc; border-radius:14px; padding:4px 12px; }
+  .aide { flex:none; text-align:center; margin:2px 6px 2px; height:38px; display:flex; align-items:center; justify-content:center;
+    color:#efe8ff; font-size:13px; line-height:1.2; overflow:hidden; background:#12042fcc; border-radius:14px; padding:4px 12px; }
   .aide:empty { background:none; }   /* sur un décor clair, le texte garde un fond sombre (SAB-032) */
   .voile { position:fixed; inset:0; background:#12042fcc; display:none; align-items:center; justify-content:center; padding:24px; z-index:20; }
   .voile.vu { display:flex; }
@@ -186,7 +191,7 @@ if (typeof module !== "undefined") module.exports = MoteurV3;
 // la pelle enlève une case sans coûter de touche ; la pierre ne s'aspire pas. Gagner : descendre à FINALE cases de sable
 // avant la fin des touches ; alors la finale : les robots aspirent le reste tout seuls (Q-013).
 // La règle est celle de moteur_v3.js (vérifiée contre regles_v3.py) ; cette page ne fait que la montrer.
-const NIVEAUX = [{"nom": "Le coucher de soleil", "image": ["VJJV", "JJJJ", "RRRR", "OOOO"], "touches": 5, "pelles": 1, "minimum": 3, "main": [1, 2]}, {"nom": "La mer et ses deux pierres", "image": ["VVJVV", "VJJJV", "RVJVR", "OPRPO", "OROJO", "JOOOO"], "touches": 7, "pelles": 1, "minimum": 5, "main": null}, {"nom": "La fleur", "image": ["VVRVV", "VRJRV", "RJVJR", "VRJRV", "OOOOO"], "touches": 8, "pelles": 1, "minimum": 5, "main": null}];           // [{ nom, image, touches, pelles, minimum, main }]
+const NIVEAUX = [{"nom": "Le coucher de soleil", "image": ["VJJV", "JJJJ", "RRRR", "OOOO"], "touches": 5, "pelles": 1, "minimum": 3, "main": [1, 2], "etiquette": "", "reglage": {"TURBO": 5, "ARC": 8, "FINALE": 4}}, {"nom": "La mer et ses deux pierres", "image": ["VVJVV", "VJJJV", "RVJVR", "OPRPO", "OROJO", "JOOOO"], "touches": 7, "pelles": 1, "minimum": 5, "main": null, "etiquette": "", "reglage": {"TURBO": 5, "ARC": 8, "FINALE": 4}}, {"nom": "La fleur", "image": ["VVRVV", "VRJRV", "RJVJR", "VRJRV", "OOOOO"], "touches": 8, "pelles": 1, "minimum": 5, "main": null, "etiquette": "", "reglage": {"TURBO": 5, "ARC": 8, "FINALE": 4}}];           // [{ nom, image, touches, pelles, minimum, main }]
 // la page : sa clé de résultats, son titre, ses seuils (la version 3, ou les images en sable, SAB-036)
 const PAGE = {"cle": "sandcade-test-v3", "titre": "version 3", "reglage": {"TURBO": 5, "ARC": 8, "FINALE": 4}} || { cle: "sandcade-test-v3", titre: "version 3", reglage: null };
 if (PAGE.reglage) MoteurV3.regler(PAGE.reglage);
@@ -253,25 +258,36 @@ if (SPRITES) for (const k in SPRITES) { IMG[k] = new Image(); IMG[k].src = SPRIT
 const toile = $("toile"), ctx = toile.getContext("2d");
 let niv = 0, w = 0, h = 0, S = 60, P = 5, W = 360, HT = 600, ox = 0, oy = 0, dpr = 1;
 let E = [], V = [], id = 0, touches = 0, pelles = 0, arme = false, occupe = false, gele = false, fini = false, essai = 0, donnees = 0, passer = false;
-let guide = null;   // la case que montre la main du niveau 1, ou null
+let guide = null;   // la case que montre la main (la première touche d'un niveau, un robot spécial vu pour la première fois), ou null
+let montreArc = null;   // le premier arc-en-ciel : tant que la main le montre, le sable de sa couleur s'allume (SAB-037)
+const NOM_COULEUR = { J: "jaune", O: "orange", R: "rose", V: "violet" };
 let volants = [], etincelles = [], textes = [], pulsations = [], robots = {}, actif = null, tuyau = null, secousse = 0, vise = null;
 const ORDRE = ["J", "O", "R", "V"];
 
 function montrer(i) { document.querySelectorAll(".ecran").forEach(e => e.classList.toggle("vu", e.id === i)); }
 function voile(html) { $("voileCarte").innerHTML = html; $("voile").classList.toggle("vu", !!html); }
-$("jouer").onclick = () => { audio(); test = null; niv = 0; commencer(); };
+// le jeu libre : on choisit son niveau (SAB-037) ; le test, lui, les passe dans l'ordre
+$("jouer").onclick = () => {
+  audio(); test = null;
+  voile(`<div class="titre">Choisis un niveau</div><div class="niveaux">${NIVEAUX.map((n, i) =>
+    `<button data-n="${i}"><b>${i + 1}</b>${n.nom}${n.etiquette ? `<small>${n.etiquette}</small>` : ""}</button>`).join("")}</div>
+    <button class="bouton clair" id="fermerNiveaux">Revenir</button>`);
+  document.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { niv = +b.dataset.n; commencer(); });
+  $("fermerNiveaux").onclick = () => voile("");
+};
 
 // L'écran (SAB-033) : le plateau aussi grand que la largeur le permet ; la toile prend toute la hauteur libre, les objectifs
 // (la barre des robots) restent en haut, le plateau descend vers le pouce, la pelle et l'aide sont tout en bas.
 function mesurer() {
   const jeu = $("jeu"), st = getComputedStyle(jeu);
-  const large = Math.min(innerWidth, 520) - 24;
+  const large = Math.min(innerWidth, 520) - 12;
   const hautDispo = Math.max(200, jeu.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
-    - document.querySelector("#jeu .entete").offsetHeight - document.querySelector("#jeu .bas").offsetHeight - $("aide").offsetHeight - 12);
-  S = Math.floor(Math.min(large * .94 / w, hautDispo / (h + 2.5), 130));
+    - document.querySelector("#jeu .entete").offsetHeight - document.querySelector("#jeu .bas").offsetHeight - $("aide").offsetHeight - 6);
+  // la barre des robots (une rangée), le vol du robot au-dessus du plateau, le cadre : 2,1 rangées en tout (SAB-037)
+  S = Math.floor(Math.min(large * .97 / w, hautDispo / (h + 2.1), 130));
   P = S / G; W = large; HT = Math.floor(hautDispo);
-  const libre = HT - S * (h + 2.5);
-  ox = Math.round((W - w * S) / 2); oy = Math.round(S * 2.25 + libre * .6);
+  const libre = HT - S * (h + 2.1);
+  ox = Math.round((W - w * S) / 2); oy = Math.round(S * 1.85 + libre * .6);
   dpr = Math.min(3, window.devicePixelRatio || 1);
   toile.width = W * dpr; toile.height = HT * dpr; toile.style.width = W + "px"; toile.style.height = HT + "px";
 }
@@ -292,15 +308,17 @@ function commencer() {
   G = S >= 56 ? 12 : S >= 40 ? 10 : 8; P = S / G;
   const decor = DECORS && DECORS[niv % DECORS.length];
   document.body.style.background = decor ? `#0b0a2e url(${decor}) center bottom / cover no-repeat fixed` : "";
+  MoteurV3.regler(nv.reglage || PAGE.reglage || {});    // un niveau peut avoir ses seuils (SAB-037)
+  montreArc = null;
   E = MoteurV3.depart(nv.image);
   V = E.map(col => [...col].map(nouvelleCase));
   placerTout(true);
   robots = {}; for (const k of ORDRE) robots[k] = { k, x: xSlot(k), y: Y_BARRE(), tx: xSlot(k), ty: Y_BARRE(), vx: 0, vy: 0, taille: .48, tt: .48, recu: 0, attendu: 1, bulle: 0, non: 0 };
-  $("nomNiveau").textContent = `Niveau ${niv + 1}`; $("nomNiveau").title = nv.nom;
+  $("nomNiveau").innerHTML = `Niveau ${niv + 1}${nv.etiquette ? `<span class="dur">${nv.etiquette}</span>` : ""}`; $("nomNiveau").title = nv.nom;
   textes.push({ x: W / 2, y: -S * 3, t: 0, txt: "", gros: nv.nom });       // le nom du niveau, en bannière au départ
   guide = nv.main ? nv.main.slice() : null;                                // la main du niveau 1 : la première touche à faire
   afficher();
-  $("aide").textContent = niv === 0 ? `Touche un paquet : le robot de sa couleur l'aspire. À ${MoteurV3.FINALE} cases, les robots finissent !`
+  $("aide").textContent = nv.etiquette ? `Niveau ${nv.etiquette.toLowerCase()} : prends le temps de prévoir tes coups.` : niv === 0 ? `Touche un paquet : le robot de sa couleur l'aspire. À ${MoteurV3.FINALE} cases, les robots finissent !`
     : E.some(c => c.includes("P")) ? "Les pierres ne s'aspirent pas : la pelle ou un turbo les enlève." : "Prévois tes coups : fais tomber le sable pour coller les couleurs.";
 }
 function reste(k) { return E.reduce((a, col) => a + [...col].filter(ch => ch === k).length, 0); }
@@ -370,6 +388,7 @@ async function toucherCase(c, i) {
   if (!res) { sonNon(); $("aide").textContent = "Une pierre ne s'aspire pas : la pelle ou un turbo sur sa rangée l'enlève."; return; }
   occupe = true; touches--; afficher(); $("aide").textContent = "";
   if (res.agit !== "sable") guide = null;
+  montreArc = null;
   const [bx, by] = centre(c, i);
   if (res.agit === "sable") {
     // le robot de sa couleur quitte la barre, glisse à l'aplomb, descend son tuyau ; le paquet file dedans
@@ -382,7 +401,11 @@ async function toucherCase(c, i) {
     r.attendu = volants.filter(v => v.compte && !v.fini).length || 1;
     sonAspire(Math.max(.35, duree));
     appliquer(res, c, i);
-    guide = guide && res.nait === "T" ? [c, E[c].indexOf("T")] : null;
+    // un robot spécial qui naît : la main le montre au niveau qui le présente, et la première fois qu'on en voit un (SAB-037)
+    const sorte = res.nait === "T" ? "turbo" : "arc", neuf = res.nait && !dejaVu(sorte);
+    guide = res.nait && (guide || neuf) ? [c, Math.min(i, E[c].length - 1)] : null;
+    montreArc = guide && res.nait !== "T" ? { k: res.nait.toUpperCase() } : null;
+    if (neuf) marquerVu(sorte);
     if (res.pris.length >= 8) secousse = Math.min(6, res.pris.length / 3);
     await attendre(duree * 1000 + 60);
     tuyau.remonte = true; gele = false; placerTout(false); sonChute();
@@ -392,7 +415,8 @@ async function toucherCase(c, i) {
     for (let n = 0; n < (gros ? 26 : 12); n++) etincelles.push({ x: r.x, y: r.y, vx: hasard(-1, 1) * S * 3, vy: hasard(-1.4, .2) * S * 3, t: 0, k: res.k });
     await attendre(150);
     tuyau = null; r.tx = xSlot(r.k); r.ty = Y_BARRE(); r.tt = .48; actif = null;
-    if (res.nait) $("aide").textContent = res.nait === "T" ? "Un turbo ! Touche-le : il aspire toute sa rangée ⇆, pierres comprises." : "Un arc-en-ciel ! Touche-le : il aspire tout le sable de sa couleur.";
+    if (res.nait) $("aide").textContent = res.nait === "T" ? "Un turbo ! Touche-le : il aspire toute sa rangée ⇆, pierres comprises."
+      : `Un arc-en-ciel ${NOM_COULEUR[res.k]} ! Touche-le : il aspire d'un coup tout le sable ${NOM_COULEUR[res.k]} qui reste.`;
   } else if (res.agit === "turbo") {
     // le turbo file d'un bord à l'autre le long de la rangée ; les grains sautent dedans à son passage
     const r = actif = { k: "T", x: -S, y: by, tx: W + S * 1.5, ty: by, vx: 0, vy: 0, taille: .8, tt: .8, recu: 0, attendu: 1, bulle: 0, non: 0, turbo: true };
@@ -524,6 +548,8 @@ const stock = (() => { try { localStorage.setItem(CLE + "-essai", "1"); localSto
 const lire = () => JSON.parse(stock.getItem(CLE) || "{}");
 const ecrireStock = d => stock.setItem(CLE, JSON.stringify(d));
 let test = null, testeur = 1, debutEssai = 0, momentPerte = 0, finaleVue = false;
+const dejaVu = sorte => (lire().vus || []).includes(sorte);
+function marquerVu(sorte) { const d = lire(); d.vus = [...new Set([...(d.vus || []), sorte])]; ecrireStock(d); }
 function garderSession() { if (!test) return; const d = lire(); d["T" + testeur] = test; ecrireStock(d); }
 function montrerHors(id) { document.body.style.background = ""; voile(""); montrer(id); document.getElementById(id).scrollTop = 0; }
 function accueil() {
@@ -536,6 +562,7 @@ $("commencerTest").onclick = () => {
   audio();
   test = { prenom: $("prenom").value.trim(), debut: Date.now(), niveaux: NIVEAUX.map(() => ({ essais: [] })), offre: null, offreNiveau: null,
            redemande: null, notes: "", rejoue: false, fini: false };
+  const d = lire(); delete d.vus; ecrireStock(d);    // un nouveau testeur : la main lui montrera le premier turbo, le premier arc-en-ciel
   garderSession(); niv = 0; commencer();
 };
 $("voirBilan").onclick = bilan;
@@ -676,7 +703,7 @@ function dessiner(t) {
   // le sable, les pierres, les robots spéciaux
   const pas = P + .5;
   V.forEach((col, c) => col.forEach((o, i) => {
-    const allume = vise && vise.has(o.id);
+    const allume = (vise && vise.has(o.id)) || (montreArc && guide && o.k === montreArc.k);
     if (o.grains) {
       for (const gr of o.grains) {
         const x = ox + c * S + gr.u * P;
@@ -718,7 +745,7 @@ function dessiner(t) {
   for (const e of etincelles) { const a = 1 - e.t / .7; ctx.fillStyle = e.t < .15 ? "#fff" : hsl(e.k, 15, a); ctx.beginPath(); ctx.arc(e.x, e.y, S * .06 * (1 + a), 0, 7); ctx.fill(); }
   if (guide && !occupe && !fini && V[guide[0]] && V[guide[0]][guide[1]]) {
     const [gx, gy] = centre(guide[0], guide[1]), b = Math.abs(Math.sin(t * 4)) * S * .15;
-    ctx.save(); ctx.font = `${Math.round(S * .8)}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.save(); ctx.font = `${Math.round(Math.max(S, 34))}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top";
     ctx.shadowColor = "#000a"; ctx.shadowBlur = 8; ctx.fillText("👆", gx + S * .3, gy + S * .22 + b); ctx.restore();
   }
   for (const tx of textes) {
